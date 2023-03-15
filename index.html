@@ -1,39 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 
-<html lang="en" class='color-transition'>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<html lang="en" class="color-transition">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
-  <!-- PWA -->
-  <meta name="theme-color" content="#1E2124" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="#1E2124" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <!--<meta name="msapplication-TileImage" content="/img/background-multichain-min.png">-->
-  <meta name="msapplication-TileColor" content="#1E2124">
-  <meta name="msapplication-tap-highlight" content="no">
+        <!-- PWA -->
+        <meta name="theme-color" content="#1E2124" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="#1E2124" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <!--<meta name="msapplication-TileImage" content="/img/background-multichain-min.png">-->
+        <meta name="msapplication-TileColor" content="#1E2124" />
+        <meta name="msapplication-tap-highlight" content="no" />
 
-  <title>Crypto Chainlink Oracle Data</title>
-  <meta name="description" content="" />
-  <meta name="author" content="Dorian Bayart" />
-  <meta name="keywords" content="" />
-  <meta name="robots" content="index, follow" />
+        <title>Crypto Chainlink Oracle Data</title>
+        <meta name="description" content="" />
+        <meta name="author" content="Dorian Bayart" />
+        <meta name="keywords" content="" />
+        <meta name="robots" content="index, follow" />
 
-  <!--<link rel="shortcut icon" type="image/png" href="/img/background-multichain-min.png" />-->
-  <!--<link rel="apple-touch-icon" type="image/png" href="/img/background-multichain-min.png" />-->
-  <link href="./" rel="canonical" />
+        <!--<link rel="shortcut icon" type="image/png" href="/img/background-multichain-min.png" />-->
+        <!--<link rel="apple-touch-icon" type="image/png" href="/img/background-multichain-min.png" />-->
+        <link href="./" rel="canonical" />
 
-  <meta property="og:title" content="Crypto Chainlink Oracle Data" />
-  <meta property="og:type" content="website" />
-  <meta property="og:description" content="" />
-  <meta property="og:url" content="./" />
-  <!--<meta property="og:image" content="/img/background-multichain-min.png" />-->
-  <meta property="og:site_name" content="Crypto Chainlink Oracle Data" />
+        <meta property="og:title" content="Crypto Chainlink Oracle Data" />
+        <meta property="og:type" content="website" />
+        <meta property="og:description" content="" />
+        <meta property="og:url" content="./" />
+        <!--<meta property="og:image" content="/img/background-multichain-min.png" />-->
+        <meta property="og:site_name" content="Crypto Chainlink Oracle Data" />
 
-  <!--<link rel="alternate" type="application/atom+xml" title="DexPairs.xyz News" href="/feed.atom" />-->
+        <!--<link rel="alternate" type="application/atom+xml" title="DexPairs.xyz News" href="/feed.atom" />-->
 
-  <!--<link rel="manifest" href="/manifest.json">
+        <!--<link rel="manifest" href="/manifest.json">
   <script src="/public/js/pwa.js"></script>
 
   <link rel="stylesheet" href="./public/colors.css">
@@ -43,32 +43,35 @@
 
   <script defer src="/public/js/websocket.js"></script>-->
 
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.0/web3.min.js" integrity="sha512-bSQ2kf76XufUYS/4XinoHLp5S4lNOyRv0/x5UJACiOMy8ueqTNwRFfUZWmWpwnczjRp9SjiF1jrXbGEim7Y0Xg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script
+            defer
+            src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.0/web3.min.js"
+            integrity="sha512-bSQ2kf76XufUYS/4XinoHLp5S4lNOyRv0/x5UJACiOMy8ueqTNwRFfUZWmWpwnczjRp9SjiF1jrXbGEim7Y0Xg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
 
-  <script defer src="./public/script/index.js"></script>
+        <script defer src="./public/script/constant.js"></script>
+        <script defer src="./public/script/index.js"></script>
 
-</head>
+        <link rel="stylesheet" href="./public/style/reset.css" />
+        <link rel="stylesheet" href="./public/style/page.css" />
+    </head>
 
-<body>
-  <header>
-    <a id='title' href="./" aria-label="Homepage">
-      <h1>
-        Crypto Chainlink Oracle Data
-      </h1>
-    </a>
-  </header>
+    <body>
+        <header>
+            <a id="title" href="./" aria-label="Homepage">
+                <h1>Crypto Chainlink Oracle Data</h1>
+            </a>
+        </header>
 
+        <div class="screener">
+            <h3>Screener</h3>
+            <ul id="screener"></ul>
+        </div>
 
+        <main id="main"></main>
 
-  <main id="main" />
-
-
-
-  <footer class="footer">
-
-  </footer>
-
-
-
-</body>
+        <footer class="footer"></footer>
+    </body>
 </html>
