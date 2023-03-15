@@ -130,11 +130,11 @@ const updateScreenerByContract = (contract) => {
 }
 
 const updatePrice = () => {
-  let delay = 3000;
+  let delay = 5000;
   if(screener.length > 0) {
     const contractToUpdate = screener.find((contract) => Date.now() - contract.updatedAt > 5000 || !contract.updatedAt)
     if(contractToUpdate) {
-      delay = 400
+      delay = 250
 
       let web3 = getWeb3(contractToUpdate.networkId)
     	if(web3) {
