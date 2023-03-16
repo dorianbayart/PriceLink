@@ -26,8 +26,16 @@ const initialize = async () => {
 
   await updateMain();
 
+  await initializeScreener();
+
   updatePrice();
 };
+
+const initializeScreener = async () => {
+  for(const item of SCREENER_INITIALIZER) {
+    addToScreener(item)
+  }
+}
 
 const updateMain = async () => {
   const main = document.getElementById('main');
@@ -36,7 +44,11 @@ const updateMain = async () => {
     for (const network of page.networks) {
       const networkId = page.page + '-' + network.name.toLowerCase().replaceAll(' ', '-');
       contracts[networkId] = await fetchContracts(network.rddUrl);
-      contracts[networkId].forEach((contract) => (contract.networkId = networkId));
+      contracts[networkId].forEach((contract) => {
+        const prefix = definePrefix(contract.path)
+        if(prefix && prefix !== contract.valuePrefix) contract.valuePrefix = prefix
+        contract.networkId = networkId
+      });
 
       const section = document.createElement('section');
       main.appendChild(section);
@@ -110,7 +122,7 @@ const updateScreener = () => {
       divPrice.classList.add('price');
       divPrice.id = contract.networkId + '+' + contract.path + 'price';
       if (contract.price)
-      divPrice.innerHTML = contract.valuePrefix + contract.price * Math.pow(10, -contract.decimals);
+      divPrice.innerHTML = contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals));
 
       li.id = 'screener' + contract.networkId + '+' + contract.path;
       li.addEventListener('click', removeFromScreener);
@@ -119,22 +131,22 @@ const updateScreener = () => {
       ul.appendChild(li);
     } else {
       let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
-      price.innerHTML = contract.price ? contract.valuePrefix + contract.price * Math.pow(10, -contract.decimals) : '';
+      price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
     }
   });
 };
 
 const updateScreenerByContract = (contract) => {
   let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
-  price.innerHTML = contract.price ? contract.valuePrefix + contract.price * Math.pow(10, -contract.decimals) : '';
+  if(price) price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
 }
 
 const updatePrice = () => {
-  let delay = 5000;
+  let delay = 2500;
   if(screener.length > 0) {
-    const contractToUpdate = screener.find((contract) => Date.now() - contract.updatedAt > 5000 || !contract.updatedAt)
+    const contractToUpdate = screener.find((contract) => Date.now() - contract.updatedAt > 7500 || !contract.updatedAt)
     if(contractToUpdate) {
-      delay = 250
+      delay = 250 + Math.floor(250 * Math.random())
 
       let web3 = getWeb3(contractToUpdate.networkId)
     	if(web3) {
@@ -157,7 +169,7 @@ const updatePrice = () => {
 }
 
 const addToScreener = (e) => {
-  if (!e.target.id) e = e.target.parentElement;
+  if (!e.target?.id && e.target?.parentElement) e = e.target.parentElement;
   if (e.target?.id) e = e.target;
 
   if (isInScreener(e.id)) return;
@@ -218,9 +230,26 @@ const fetchContracts = async (url) => {
   return data;
 };
 
+/* Utils - Round a price */
+const roundPrice = (price) => {
+  if(price < 0.01) return Math.round(price * 1000000) / 1000000
+  if(price < 1) return Math.round(price * 10000) / 10000
+  if(price < 10) return Math.round(price * 1000) / 1000
+  if(price < 1000) return Math.round(price * 100) / 100
+  if(price < 10000) return Math.round(price * 10) / 10
+  return Math.round(price)
+}
+
+const definePrefix = (path) => {
+  const key = Object.keys(SYMBOLS).find(key => path.endsWith(key))
+  if(key) return SYMBOLS[key]
+  return
+}
+
 /* Utils - Return the web3 to use depending on the network */
 const getWeb3 = (network) => {
-	return web3[network]
+  if(web3) return web3[network]
+  return
 }
 
 // Get token balance

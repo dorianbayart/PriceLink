@@ -1,6 +1,6 @@
 const NETWORK = {
     'arbitrum-arbitrum-goerli': {
-        rpc: '',
+        rpc: 'https://goerli-rollup.arbitrum.io/rpc',
     },
     'arbitrum-arbitrum-mainnet': {
         rpc: 'https://arb1.arbitrum.io/rpc',
@@ -9,70 +9,73 @@ const NETWORK = {
         rpc: 'https://api.avax.network/ext/bc/C/rpc',
     },
     'avalanche-avalanche-testnet': {
-        rpc: '',
+        rpc: 'https://api.avax-test.network/ext/bc/C/rpc',
     },
     'base-base-goerli-testnet': {
-        rpc: '',
+        rpc: 'https://goerli.base.org',
     },
     'bnb-chain-bnb-chain-mainnet': {
         rpc: 'https://bsc-dataseed.binance.org',
     },
     'bnb-chain-bnb-chain-testnet': {
-        rpc: '',
+        rpc: 'https://data-seed-prebsc-1-s1.binance.org:8545',
     },
     'ethereum-ethereum-mainnet': {
         rpc: 'https://cloudflare-eth.com',
     },
     'ethereum-goerli-testnet': {
-        rpc: '',
+        rpc: 'https://rpc.ankr.com/eth_goerli',
     },
     'ethereum-sepolia-testnet': {
-        rpc: 'https://rpc.ankr.com/eth_sepolia',
+        rpc: 'https://rpc.sepolia.org',
     },
     'fantom-fantom-mainnet': {
         rpc: 'https://rpcapi.fantom.network',
     },
     'fantom-fantom-testnet': {
-        rpc: '',
+        rpc: 'https://rpc.testnet.fantom.network',
     },
     'gnosis-chain-gnosis-chain-mainnet': {
         rpc: 'https://rpc.gnosischain.com',
     },
     'harmony-harmony-mainnet': {
-        rpc: '',
+        rpc: 'https://api.harmony.one',
     },
     'klaytn-klaytn-baobab-testnet': {
-        rpc: '',
+        rpc: 'https://api.baobab.klaytn.net:8651',
     },
     'metis-metis-mainnet': {
-        rpc: '',
+        rpc: 'https://andromeda.metis.io/?owner=1088',
     },
     'moonbeam-moonbeam-mainnet': {
-        rpc: '',
+        rpc: 'https://rpc.api.moonbeam.network',
     },
     'moonriver-moonriver-mainnet': {
-        rpc: '',
+        rpc: 'https://rpc.api.moonriver.moonbeam.network',
     },
     'optimism-optimism-goerli': {
-        rpc: '',
+        rpc: 'https://goerli.optimism.io',
     },
     'optimism-optimism-mainnet': {
-        rpc: '',
+        rpc: 'https://mainnet.optimism.io',
     },
     'polygon-mumbai-testnet': {
-        rpc: '',
+        rpc: 'https://rpc.ankr.com/polygon_mumbai',
     },
     'polygon-polygon-mainnet': {
         rpc: 'https://polygon-rpc.com',
     },
     'solana-solana-devnet': {
-        rpc: '',
+        rpc: 'https://api.devnet.solana.com',
     },
     'solana-solana-mainnet': {
-        rpc: '',
+        rpc: 'https://api.mainnet-beta.solana.com',
+    },
+    'starknet-starknet-mainnet': {
+        rpc: 'https://starknet-mainnet.public.blastapi.io',
     },
     'starknet-starknet-testnet': {
-        rpc: '',
+        rpc: 'https://starknet-testnet.public.blastapi.io',
     },
 };
 
@@ -92,3 +95,56 @@ const ABI = [
         type: 'function',
     },
 ];
+
+const SCREENER_INITIALIZER = [
+  {
+    id: 'polygon-polygon-mainnet+spy-us'
+  },
+  {
+    id: 'polygon-polygon-mainnet+AAPL-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+googl-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+msft-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+tsla-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+xau-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+xag-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+eur-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+jpy-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+btc-usd-marketcap'
+  },
+  {
+    id: 'polygon-polygon-mainnet+btc-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+eth-usd-marketcap'
+  },
+  {
+    id: 'polygon-polygon-mainnet+eth-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+link-usd'
+  },
+  {
+    id: 'polygon-polygon-mainnet+rai-usd'
+  }
+]
+
+const SYMBOLS = {
+  'usd': '$',
+  'eth': 'Ξ'
+}

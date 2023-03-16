@@ -1,88 +1,93 @@
 header {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: .5em;
-    font-size: max(18px, 2vh);
-    text-shadow: #00000011 3px 3px 3px;
-    border-bottom: 1px lightgray solid;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: max(18px, 2vh);
+  text-shadow: #0001 3px 3px 3px;
+  border-bottom: 1px lightgray solid;
 }
 
 header a {
-    cursor: pointer;
-    padding: 16px 24px;
-    width: 100%;
+  cursor: pointer;
+  padding: 16px 24px;
+  width: 100%;
 }
 
 header a h1 {
-    max-width: 980px;
-    margin: auto;
+  max-width: 980px;
+  margin: auto;
+}
+
+.screener {
+  padding: 16px 24px;
+  background-color: #0001;
 }
 
 ul#screener {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 ul#screener li {
-    padding: 6px 12px;
-    border: 1px lightgray solid;
-    border-radius: 6px;
-    cursor: pointer;
+  padding: 6px 12px;
+  border: 1px lightgray solid;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #fffc;
 }
 
 ul#screener li:hover {
-    background-color: #0001;
+  background-color: #fff4;
 }
 
 main {
-    padding: 16px 24px;
-    max-width: 980px;
-    margin: auto;
+  padding: 16px 24px;
+  max-width: 980px;
+  margin: auto;
 }
 
 section {
-    margin: 24px 0 36px;
+  margin: 24px 0 36px;
 }
 
 section h2 {
-    max-height: 36px;
-    display: inline-flex;
-    align-items: center;
+  max-height: 36px;
+  display: inline-flex;
+  align-items: center;
 }
 
 section h2 img {
-    height: 40px;
-    max-width: 36px;
-    margin-right: 16px;
+  height: 40px;
+  max-width: 36px;
+  margin-right: 16px;
 }
 
 section ul li {
-    margin: 6px 12px;
-    padding: 6px 12px;
-    cursor: pointer;
+  margin: 6px 12px;
+  padding: 6px 12px;
+  cursor: pointer;
 }
 
 section ul li:hover {
-    background-color: #0001;
+  background-color: #0001;
 }
 
 section .name {
-    width: 35%;
+  width: 35%;
 }
 
 section .asset {
-    width: 30%;
+  width: 30%;
 }
 
 section .type {
-    width: 15%;
+  width: 15%;
 }
 
 section .threshold,
 section .heartbeat {
-    width: 10%;
-    text-align: right;
-    display: none;
+  width: 10%;
+  text-align: right;
+  display: none;
 }
