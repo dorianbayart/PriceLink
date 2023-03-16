@@ -116,7 +116,13 @@ const updateScreener = () => {
       const li = document.createElement('li');
       const divName = document.createElement('div');
       divName.classList.add('name');
-      divName.innerHTML = contract.name;
+      divName.innerHTML = contract.assetName;
+
+      const divDate = document.createElement('div');
+      divDate.classList.add('date');
+      divDate.id = contract.networkId + '+' + contract.path + 'date';
+      if (contract.timestamp)
+      divDate.innerHTML = (new Date(contract.timestamp)).toLocaleString();
 
       const divPrice = document.createElement('div');
       divPrice.classList.add('price');
@@ -128,10 +134,13 @@ const updateScreener = () => {
       li.addEventListener('click', removeFromScreener);
       li.appendChild(divName);
       li.appendChild(divPrice);
+      li.appendChild(divDate);
       ul.appendChild(li);
     } else {
       let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
-      price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+      if(price) price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+      let date = document.getElementById(contract.networkId + '+' + contract.path + 'date');
+      if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
     }
   });
 };
@@ -139,6 +148,8 @@ const updateScreener = () => {
 const updateScreenerByContract = (contract) => {
   let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
   if(price) price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+  let date = document.getElementById(contract.networkId + '+' + contract.path + 'date');
+  if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
 }
 
 const updatePrice = () => {
@@ -154,7 +165,7 @@ const updatePrice = () => {
           contractToUpdate.updatedAt = Date.now()
           getLatestRoundWeb3(contractToUpdate.contractAddress, contractToUpdate.networkId).then(latestRoundData => {
             contractToUpdate.price = latestRoundData.answer//web3.utils.fromWei(latestRoundData.answer, 'ether')
-            contractToUpdate.timestamp = latestRoundData.updatedAt
+            contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
             updateScreenerByContract(contractToUpdate)
         	}, error => {
