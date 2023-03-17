@@ -27,6 +27,8 @@ ul#screener {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
 }
 
 ul#screener li {
@@ -35,10 +37,28 @@ ul#screener li {
   border-radius: 6px;
   cursor: pointer;
   background-color: #fffc;
+  position: relative;
 }
 
 ul#screener li:hover {
   background-color: #fff4;
+}
+
+ul#screener li .name {
+  font-weight: 600;
+  min-width: 112px;
+  margin-right: 24px;
+}
+
+ul#screener li .price {
+  font-size: 1.4em;
+}
+
+ul#screener li .date {
+  font-size: 0.8em;
+  color: #999;
+  position: absolute;
+  bottom: 3px;
 }
 
 main {
@@ -90,4 +110,35 @@ section .heartbeat {
   width: 10%;
   text-align: right;
   display: none;
+}
+
+@media (max-width: 800px) {
+  html {
+    font-size: .8em;
+  }
+
+  .screener {
+    padding: 8px 6px;
+  }
+  
+  ul#screener {
+    gap: 4px;
+  }
+  
+  ul#screener li {
+    padding: 4px 8px;
+  }
+  
+  ul#screener li .name {
+    margin-top: -2px;
+  }
+  
+  ul#screener li .name {
+    min-width: 92px;
+    margin-right: 12px;
+  }
+  
+  ul#screener li .date {
+    bottom: 0;
+  }
 }
