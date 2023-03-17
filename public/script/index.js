@@ -5,7 +5,8 @@ const contracts = {};
 
 const screener = [];
 
-const imgBaseUrl = 'https://raw.githubusercontent.com/smartcontractkit/documentation/main/public';
+const repoUrl = 'https://raw.githubusercontent.com/dorianbayart/documentation/';
+const imgBaseUrl = repoUrl + 'main/public';
 
 let web3 = null;
 
@@ -216,9 +217,7 @@ const searchContract = (id) => {
 };
 
 const fetchPages = async () => {
-  const list = await fetch(
-    'https://raw.githubusercontent.com/dorianbayart/documentation/main/src/features/feeds/data/chains.ts'
-  )
+  const list = await fetch(repoUrl + 'main/src/features/feeds/data/chains.ts')
   .then((resp) => resp.text())
   .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('export')[0]) // keep useful data
   .then((str) =>
