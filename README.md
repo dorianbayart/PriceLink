@@ -1,4 +1,4 @@
-# chainlink-data
+# chainlink-data-watcher
 
 ---
 
