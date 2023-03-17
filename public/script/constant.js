@@ -124,15 +124,15 @@ const SCREENER_INITIALIZER = [
   {
     id: 'polygon-polygon-mainnet+jpy-usd'
   },
-  {
+  /*{
     id: 'polygon-polygon-mainnet+btc-usd-marketcap'
-  },
+  },*/
   {
     id: 'polygon-polygon-mainnet+btc-usd'
   },
-  {
+  /*{
     id: 'polygon-polygon-mainnet+eth-usd-marketcap'
-  },
+  },*/
   {
     id: 'polygon-polygon-mainnet+eth-usd'
   },
