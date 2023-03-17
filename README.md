@@ -1,6 +1,21 @@
-# chainlink-data-watcher
+# Chainlink Data Watcher
+
+## What is it ?
+
+Use Chainlink's on-chain contracts to display prices
+
+## Why ?
+
+To understand how Chainlink oracle works - Just for fun !
+
+## How ?
+
+Using simple Javascript and [web3.js library](https://web3js.readthedocs.io)
 
 ---
+
+
+### Some code
 
 Get list of all supported networks
 ```js
