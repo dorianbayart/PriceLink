@@ -49,10 +49,11 @@ ul#screener li .name {
   font-weight: 600;
   min-width: 112px;
   margin-right: 24px;
+  margin-top: -4px;
 }
 
 ul#screener li .price {
-  font-size: 1.4em;
+  font-size: 1.25em;
 }
 
 ul#screener li .date {
@@ -115,30 +116,30 @@ section .heartbeat {
 
 @media (max-width: 800px) {
   html {
-    font-size: .8em;
+    font-size: 0.8em;
   }
 
   .screener {
     padding: 8px 6px;
   }
-  
+
   ul#screener {
     gap: 4px;
   }
-  
+
   ul#screener li {
     padding: 4px 8px;
   }
-  
+
   ul#screener li .name {
     margin-top: -2px;
   }
-  
+
   ul#screener li .name {
-    min-width: 92px;
+    min-width: 100px;
     margin-right: 12px;
   }
-  
+
   ul#screener li .date {
     bottom: 0;
   }
