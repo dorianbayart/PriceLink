@@ -11,8 +11,6 @@ const imgBaseUrl = repoUrl + 'main/public';
 let web3 = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await initialize();
-
   web3 = {};
 
   Object.keys(NETWORK).forEach((network) => {
@@ -20,6 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       web3[network] = new Web3(NETWORK[network].rpc);
     }
   });
+
+  await initialize();
 });
 
 const initialize = async () => {
@@ -153,10 +153,10 @@ const updateScreenerByContract = (contract) => {
   if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
 }
 
-const updatePrice = () => {
+const updatePrice = (contract) => {
   let delay = 2500;
   if(screener.length > 0) {
-    const contractToUpdate = screener.find((contract) => Date.now() - contract.updatedAt > 7500 || !contract.updatedAt)
+    const contractToUpdate = contract ?? screener.find((contract) => Date.now() - contract.updatedAt > 7500 || !contract.updatedAt)
     if(contractToUpdate) {
       delay = 250 + Math.floor(250 * Math.random())
 
@@ -177,7 +177,7 @@ const updatePrice = () => {
     }
   }
 
-  setTimeout(updatePrice, delay);
+  if(!contract) setTimeout(updatePrice, delay);
 }
 
 const addToScreener = (e) => {
@@ -186,12 +186,15 @@ const addToScreener = (e) => {
 
   if (isInScreener(e.id)) return;
 
-  screener.push(searchContract(e.id));
+  const contract = searchContract(e.id)
+  screener.push(contract);
   updateScreener();
+  updatePrice(contract);
 };
 
 const removeFromScreener = (e) => {
-  if (!e.target.id) e = e.target.parentElement;
+  if (e.target.tagName.toLowerCase() !== 'li') e = e.target.parentElement;
+  if (e.target?.id) e = e.target;
 
   if (isInScreener(e.id)) {
     screener.splice(
