@@ -1,3 +1,7 @@
+html {
+  font-family: 'Roboto', sans-serif;
+}
+
 header {
   display: flex;
   align-items: center;
@@ -46,7 +50,7 @@ ul#screener li:hover {
 }
 
 ul#screener li .name {
-  font-weight: 600;
+  font-weight: 500;
   min-width: 112px;
   margin-right: 24px;
   margin-top: -4px;
@@ -58,6 +62,7 @@ ul#screener li .price {
 
 ul#screener li .date {
   font-size: 0.8em;
+  font-weight: 200;
   color: #999;
   position: absolute;
   bottom: 3px;
