@@ -57,7 +57,8 @@ ul#screener li .name {
 }
 
 ul#screener li .price {
-  font-size: 1.25em;
+  font-size: 1.2em;
+  font-family: 'Roboto Mono', monospace;
 }
 
 ul#screener li .date {
