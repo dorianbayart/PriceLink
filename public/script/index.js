@@ -43,7 +43,7 @@ const updateMain = async () => {
 
   for (const page of pages) {
     for (const network of page.networks) {
-      const networkId = page.page + '-' + network.name.toLowerCase().replaceAll(' ', '-');
+      const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-');
       contracts[networkId] = await fetchContracts(network.rddUrl);
       contracts[networkId].forEach((contract) => {
         const prefix = definePrefix(contract.path)
@@ -114,7 +114,17 @@ const updateScreener = () => {
   screener.forEach((contract) => {
     let li = document.getElementById('screener' + contract.networkId + '+' + contract.path);
     if (!li) {
+      console.log(contract.networkId, pages.find(page => page.page === contract.networkId.split('.')[0]))
+      const page = pages.find(page => page.page === contract.networkId.split('.')[0])
       const li = document.createElement('li');
+      const divChainLogo = document.createElement('div')
+      divChainLogo.classList.add('chain-logo-container')
+      const imgChain = document.createElement('img');
+      imgChain.classList.add('chain-logo');
+      imgChain.src = imgBaseUrl + page.img;
+      imgChain.alt = page.label;
+      divChainLogo.appendChild(imgChain)
+
       const divName = document.createElement('div');
       divName.classList.add('name');
       divName.innerHTML = contract.assetName;
@@ -133,6 +143,7 @@ const updateScreener = () => {
 
       li.id = 'screener' + contract.networkId + '+' + contract.path;
       li.addEventListener('click', removeFromScreener);
+      li.appendChild(divChainLogo);
       li.appendChild(divName);
       li.appendChild(divPrice);
       li.appendChild(divDate);
@@ -158,7 +169,7 @@ const updatePrice = (contract) => {
   if(screener.length > 0) {
     const contractToUpdate = contract ?? screener.find((contract) => Date.now() - contract.updatedAt > 7500 || !contract.updatedAt)
     if(contractToUpdate) {
-      delay = 250 + Math.floor(250 * Math.random())
+      delay = 100 + Math.floor(500 * Math.random())
 
       let web3 = getWeb3(contractToUpdate.networkId)
     	if(web3) {
@@ -250,6 +261,8 @@ const roundPrice = (price) => {
   if(price < 10) return Math.round(price * 1000) / 1000
   if(price < 1000) return Math.round(price * 100) / 100
   if(price < 10000) return Math.round(price * 10) / 10
+  if(price > 1000000000) return Math.round(price / 1000000000) + 'b'
+  if(price > 1000000) return Math.round(price / 1000000) + 'm'
   return Math.round(price)
 }
 

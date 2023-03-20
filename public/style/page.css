@@ -32,7 +32,7 @@ ul#screener {
   align-items: center;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 8px 10px;
 }
 
 ul#screener li {
@@ -47,6 +47,25 @@ ul#screener li {
 
 ul#screener li:hover {
   background-color: #fff4;
+}
+
+ul#screener li .chain-logo-container {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: -8px;
+  left: -8px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid lightgray;
+}
+
+ul#screener li .chain-logo-container .chain-logo {
+  max-height: 100%;
 }
 
 ul#screener li .name {
