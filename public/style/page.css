@@ -51,13 +51,13 @@ ul#screener li:hover {
 
 ul#screener li .chain-logo-container {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  top: -8px;
-  left: -8px;
+  width: 18px;
+  height: 18px;
+  top: -6px;
+  left: -6px;
   background-color: white;
   border-radius: 12px;
-  padding: 2px;
+  padding: 1px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,11 +149,16 @@ section .heartbeat {
   }
 
   ul#screener {
-    gap: 4px;
+    gap: 6px 8px;
   }
 
   ul#screener li {
     padding: 4px 8px;
+  }
+  
+  ul#screener li .chain-logo-container {
+    width: 16px;
+    height: 16px;
   }
 
   ul#screener li .name {
