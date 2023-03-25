@@ -114,7 +114,6 @@ const updateScreener = () => {
   screener.forEach((contract) => {
     let li = document.getElementById('screener' + contract.networkId + '+' + contract.path);
     if (!li) {
-      console.log(contract.networkId, pages.find(page => page.page === contract.networkId.split('.')[0]))
       const page = pages.find(page => page.page === contract.networkId.split('.')[0])
       const li = document.createElement('li');
       const divChainLogo = document.createElement('div')
