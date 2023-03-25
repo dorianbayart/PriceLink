@@ -5,7 +5,7 @@ const NETWORK = {
     'arbitrum.arbitrum-mainnet': {
         rpc: 'https://arb1.arbitrum.io/rpc',
     },
-    'avalanche-.valanche-mainnet': {
+    'avalanche.avalanche-mainnet': {
         rpc: 'https://api.avax.network/ext/bc/C/rpc',
     },
     'avalanche.avalanche-testnet': {
