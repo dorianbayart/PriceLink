@@ -31,6 +31,7 @@ header a h1 {
 .screener {
   padding: 16px 24px;
   background-color: #0001;
+  border-bottom: 1px lightgray solid;
 }
 
 ul#screener {
