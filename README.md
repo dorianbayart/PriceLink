@@ -1,8 +1,13 @@
-# Chainlink Data Watcher
+# DeChainPricesX
+
+> <b>De</b>centralized  
+> block<b>Chain</b>  
+> <b>Chain</b>link  
+> <b>PricesX</b>  
 
 ## What is it ?
 
-Use Chainlink's on-chain contracts to display prices
+Display real-time prices of stocks, forex, crypto or indices using Chainlink's decentralized on-chain smart-contracts.
 
 ## Why ?
 
