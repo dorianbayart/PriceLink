@@ -175,7 +175,9 @@ const updatePrice = (contract) => {
     		try {
           contractToUpdate.updatedAt = Date.now()
           getLatestRoundWeb3(contractToUpdate.contractAddress, contractToUpdate.networkId).then(latestRoundData => {
-            contractToUpdate.price = latestRoundData.answer//web3.utils.fromWei(latestRoundData.answer, 'ether')
+		  if(!latestRoundData) return
+		  
+            contractToUpdate.price = latestRoundData.answer
             contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
             updateScreenerByContract(contractToUpdate)
@@ -279,7 +281,9 @@ const getWeb3 = (network) => {
 
 // Get token balance
 const getLatestRoundWeb3 = async (adress, network) => {
-	let contract = new (getWeb3(network).eth).Contract(ABI, adress)
+	const web3 = getWeb3(network)
+	if(!web3) return
+	let contract = new (web3.eth).Contract(ABI, adress)
 	return await contract.methods.latestRoundData().call(async (error, value) => {
 		return value
 	})
