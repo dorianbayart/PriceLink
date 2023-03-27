@@ -10,22 +10,25 @@ body {
 
 header {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-flow: column;
   font-size: max(18px, 2vh);
   text-shadow: #0001 3px 3px 3px;
   border-bottom: 1px lightgray solid;
 }
 
-header a {
-  cursor: pointer;
-  padding: 16px 24px;
-  width: 100%;
+header h1, header h2 {
+  width: min(980px, 100% - 48px);
 }
 
-header a h1 {
-  max-width: 980px;
-  margin: auto;
+header h1 {
+  margin: 16px auto 0;
+  font-variant: small-caps;
+}
+
+header h2 {
+  margin: 0 auto 16px;
+  font-size: small;
+  color: grey;
 }
 
 .screener {
@@ -89,8 +92,8 @@ ul#screener li .price {
 
 ul#screener li .date {
   font-size: 0.8em;
-  font-weight: 200;
-  color: #999;
+  font-weight: 300;
+  color: #666d;
   position: absolute;
   bottom: 3px;
 }
