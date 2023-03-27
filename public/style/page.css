@@ -2,6 +2,12 @@ html {
   font-family: 'Roboto', sans-serif;
 }
 
+body {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+}
+
 header {
   display: flex;
   align-items: center;
@@ -90,8 +96,10 @@ ul#screener li .date {
 
 main {
   padding: 16px 24px;
+  width: 100%;
   max-width: 980px;
   margin: auto;
+  flex: auto;
 }
 
 section {
