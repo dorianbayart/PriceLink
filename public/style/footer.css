@@ -1,0 +1,23 @@
+.footer {
+  margin: 24px 0 0;
+  text-align: center;
+  padding: 12px;
+  box-shadow: 0 0 0 1px #CCCC;
+}
+
+.footer a:hover {
+  opacity: .75;
+}
+
+.link-with-img {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  margin: 6px 12px;
+}
+
+.link-with-img img {
+  margin-right: 8px;
+  width: auto;
+  height: 20px;
+}
