@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html lang="en" class="color-transition">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+        <!-- PWA -->
+        <meta name="theme-color" content="#1E2124" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="#1E2124" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <!--<meta name="msapplication-TileImage" content="/img/background-multichain-min.png">-->
+        <meta name="msapplication-TileColor" content="#1E2124" />
+        <meta name="msapplication-tap-highlight" content="no" />
+
+        <title>DeChainPricesX</title>
+        <meta name="description" content="Display real-time prices of stocks, forex, crypto or indices using Chainlink's decentralized on-chain smart-contracts" />
+        <meta name="author" content="Dorian Bayart" />
+        <meta name="keywords" content="decentralized, blockchain, chainlink, prices, realtime, on-chain, smart-contract, stocks, forex, crypto, indices, web3, web3.js" />
+        <meta name="robots" content="index, follow" />
+
+        <!--<link rel="shortcut icon" type="image/png" href="/img/background-multichain-min.png" />-->
+        <!--<link rel="apple-touch-icon" type="image/png" href="/img/background-multichain-min.png" />-->
+        <link href="./" rel="canonical" />
+
+        <meta property="og:title" content="DeChainPricesX" />
+        <meta property="og:type" content="website" />
+        <meta property="og:description" content="Display real-time prices of stocks, forex, crypto or indices using Chainlink's decentralized on-chain smart-contracts" />
+        <meta property="og:url" content="./" />
+        <!--<meta property="og:image" content="/img/background-multichain-min.png" />-->
+        <meta property="og:site_name" content="DeChainPricesX" />
+
+        <!--<link rel="alternate" type="application/atom+xml" title="DexPairs.xyz News" href="/feed.atom" />-->
+
+        <!--<link rel="manifest" href="/manifest.json">
+  <script src="/public/js/pwa.js"></script>
+
+  <link rel="stylesheet" href="./public/colors.css">
+  <link rel="stylesheet" href="./public/common.css">
+  <link rel="stylesheet" href="./public/index.css">
+  <link rel="stylesheet" href="./public/footer.css">
+
+  <script defer src="/public/js/websocket.js"></script>-->
+
+        <script
+            defer
+            src="./public/script/web3.min.js"
+            integrity="sha512-bSQ2kf76XufUYS/4XinoHLp5S4lNOyRv0/x5UJACiOMy8ueqTNwRFfUZWmWpwnczjRp9SjiF1jrXbGEim7Y0Xg=="
+        ></script>
+
+        <script defer src="./public/script/constant.js"></script>
+        <script defer src="./public/script/index.js"></script>
+
+        <link rel="stylesheet" href="./public/style/reset.css" />
+        <link rel="stylesheet" href="./public/style/page.css" />
+        <link rel="stylesheet" href="./public/style/footer.css">
+    </head>
+
+    <body>
+        <header>
+            <h1>DeChainPricesX</h1>
+            <h2><b>De</b>centralized block<b>Chain</b>link RealTime <b>Prices X</b></h2>
+        </header>
+
+        <div class="screener">
+            <ul id="screener"></ul>
+        </div>
+
+        <main id="main"></main>
+
+        <footer class="footer">
+            <a id="github_link" class="link-with-img" title="Go to DeChainPricesX Github" href="https://github.com/dorianbayart/DeChainPricesX" target="_blank" rel="noopener">
+              <img src="https://raw.githubusercontent.com/dorianbayart/DeChainPricesX/main/public/assets/github-mark.svg" title="Github Logo" alt="Github Logo" width="20px" height="20px" />
+              <span>DeChainPricesX</span>
+            </a>
+        </footer>
+    </body>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;200;300;400;500&display=swap" rel="stylesheet"> 
+</html>

@@ -1,0 +1,190 @@
+html {
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  display: flex;
+  flex-flow: column;
+  /*min-width: min(780px, 100vw);*/
+  min-height: 100vh;
+  width: 780px;
+}
+
+header {
+  display: flex;
+  flex-flow: column;
+  font-size: max(18px, 2vh);
+  text-shadow: #0001 3px 3px 3px;
+  border-bottom: 1px lightgray solid;
+}
+
+header h1, header h2 {
+  width: min(980px, 100% - 48px);
+}
+
+header h1 {
+  margin: 16px auto 0;
+  font-variant: small-caps;
+}
+
+header h2 {
+  margin: 0 auto 16px;
+  font-size: small;
+  color: grey;
+}
+
+.screener {
+  padding: 16px 24px;
+  background-color: #0001;
+  border-bottom: 1px lightgray solid;
+}
+
+ul#screener {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 10px;
+}
+
+ul#screener li {
+  align-items: start;
+  padding: 6px 12px;
+  border: 1px lightgray solid;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #fffc;
+  position: relative;
+}
+
+ul#screener li:hover {
+  background-color: #fff4;
+}
+
+ul#screener li .chain-logo-container {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: -6px;
+  left: -6px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid lightgray;
+}
+
+ul#screener li .chain-logo-container .chain-logo {
+  max-height: 100%;
+}
+
+ul#screener li .name {
+  font-weight: 500;
+  min-width: 112px;
+  margin-right: 24px;
+  margin-top: -4px;
+}
+
+ul#screener li .price {
+  font-size: 1.2em;
+  font-family: 'Roboto Mono', monospace;
+}
+
+ul#screener li .date {
+  font-size: 0.8em;
+  font-weight: 300;
+  color: #666d;
+  position: absolute;
+  bottom: 3px;
+}
+
+main {
+  padding: 16px 24px;
+  width: 100%;
+  max-width: 980px;
+  margin: auto;
+  flex: auto;
+}
+
+section {
+  margin: 24px 0 36px;
+}
+
+section h2 {
+  max-height: 36px;
+  display: inline-flex;
+  align-items: center;
+}
+
+section h2 img {
+  height: 40px;
+  max-width: 36px;
+  margin-right: 16px;
+}
+
+section ul li {
+  margin: 6px 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+section ul li:hover {
+  background-color: #0001;
+}
+
+section .name {
+  width: 35%;
+}
+
+section .asset {
+  width: 30%;
+}
+
+section .type {
+  width: 15%;
+}
+
+section .threshold,
+section .heartbeat {
+  width: 10%;
+  text-align: right;
+  display: none;
+}
+
+@media (max-width: 780px) {
+  html {
+    font-size: 0.8em;
+  }
+
+  .screener {
+    padding: 8px 6px;
+  }
+
+  ul#screener {
+    gap: 6px 8px;
+  }
+
+  ul#screener li {
+    padding: 4px 8px;
+  }
+  
+  ul#screener li .chain-logo-container {
+    width: 16px;
+    height: 16px;
+  }
+
+  ul#screener li .name {
+    margin-top: -2px;
+  }
+
+  ul#screener li .name {
+    min-width: 100px;
+    margin-right: 12px;
+  }
+
+  ul#screener li .date {
+    bottom: 0;
+  }
+}
