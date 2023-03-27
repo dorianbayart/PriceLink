@@ -152,7 +152,7 @@ section .heartbeat {
   display: none;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 780px) {
   html {
     font-size: 0.8em;
   }
