@@ -1,7 +1,6 @@
 * {
   box-sizing: border-box;
   font-family: system-ui, sans-serif, Arial;
-  transition: all 75ms ease-in-out;
 }
 
 .unselectable {
