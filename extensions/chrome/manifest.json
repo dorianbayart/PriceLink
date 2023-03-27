@@ -1,0 +1,29 @@
+{
+  "name": "DeChainPricesX",
+  "version": "0.0.1",
+  "version_name": "0.0.1 alpha",
+  "description": "Display real-time prices of stocks, forex, crypto or indices using Chainlink's decentralized on-chain smart-contracts.",
+  "manifest_version": 3,
+  "author": {
+  	"email": "dorian.bayart+extension@gmail.com"
+  },
+  "icons": {
+    "16": "exchange-funds-line.png",
+    "48": "exchange-funds-line.png",
+    "128": "exchange-funds-line.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "action": {
+  	"default_title": "DeChainPricesX",
+    "default_icon": {
+      "16": "exchange-funds-line.png",
+      "48": "exchange-funds-line.png",
+      "128": "exchange-funds-line.png"
+    },
+    "default_popup": "index.html"
+  }
+}
