@@ -137,8 +137,11 @@ const updateScreener = () => {
       const divPrice = document.createElement('div');
       divPrice.classList.add('price');
       divPrice.id = contract.networkId + '+' + contract.path + 'price';
-      if (contract.price)
-      divPrice.innerHTML = contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals));
+      if (contract.price) {
+        divPrice.innerHTML = contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals));
+        if (contract.price > contract.previousPrice) divPrice.classList.add('up')
+        else if (contract.price < contract.previousPrice) divPrice.classList.add('down')
+      }
 
       li.id = 'screener' + contract.networkId + '+' + contract.path;
       li.addEventListener('click', removeFromScreener);
@@ -149,7 +152,16 @@ const updateScreener = () => {
       ul.appendChild(li);
     } else {
       let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
-      if(price) price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+      if(price) {
+        price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+        if (contract.price > contract.previousPrice) {
+          price.classList.toggle('down', false)
+          price.classList.add('up')
+        } else if (contract.price < contract.previousPrice) {
+          price.classList.toggle('up', false)
+          price.classList.add('down')
+        }
+      }
       let date = document.getElementById(contract.networkId + '+' + contract.path + 'date');
       if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
     }
@@ -158,7 +170,16 @@ const updateScreener = () => {
 
 const updateScreenerByContract = (contract) => {
   let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
-  if(price) price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+  if(price) {
+    price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+    if (contract.price > contract.previousPrice) {
+      price.classList.toggle('down', false)
+      price.classList.add('up')
+    } else if (contract.price < contract.previousPrice) {
+      price.classList.toggle('up', false)
+      price.classList.add('down')
+    }
+  }
   let date = document.getElementById(contract.networkId + '+' + contract.path + 'date');
   if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
 }
@@ -174,13 +195,28 @@ const updatePrice = (contract) => {
     	if(web3) {
     		try {
           contractToUpdate.updatedAt = Date.now()
-          getLatestRoundWeb3(contractToUpdate.contractAddress, contractToUpdate.networkId).then(latestRoundData => {
-		  if(!latestRoundData) return
-		  
+          getLatestRoundWeb3(contractToUpdate.proxyAddress, contractToUpdate.networkId).then(latestRoundData => {
+            if(!latestRoundData) return
+
+            contractToUpdate.roundId = latestRoundData.roundId
             contractToUpdate.price = latestRoundData.answer
             contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
-            updateScreenerByContract(contractToUpdate)
+            const num = BigInt(contractToUpdate.roundId)
+            const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
+            const phaseId = num >> 64n
+            const aggregatorRoundId = num & num2
+            const previousRound = (phaseId << 64n) | (aggregatorRoundId - 1n)
+
+            getRoundDataWeb3(contractToUpdate.proxyAddress, previousRound, contractToUpdate.networkId).then(roundData => {
+              contractToUpdate.previousRoundId = roundData.roundId
+              contractToUpdate.previousPrice = roundData.answer
+              contractToUpdate.previousTimestamp = Number(roundData.updatedAt + "000")
+
+              updateScreenerByContract(contractToUpdate)
+            })
+
+            // updateScreenerByContract(contractToUpdate)
         	}, error => {
         		console.log(error)
         	})
@@ -279,12 +315,20 @@ const getWeb3 = (network) => {
   return
 }
 
-// Get token balance
+// Get latest price
 const getLatestRoundWeb3 = async (adress, network) => {
 	const web3 = getWeb3(network)
 	if(!web3) return
 	let contract = new (web3.eth).Contract(ABI, adress)
 	return await contract.methods.latestRoundData().call(async (error, value) => {
+		return value
+	})
+}
+
+// Get historical price
+const getRoundDataWeb3 = async (adress, roundId, network) => {
+	let contract = new (getWeb3(network).eth).Contract(ABI, adress)
+	return await contract.methods.getRoundData(roundId).call(async (error, value) => {
 		return value
 	})
 }

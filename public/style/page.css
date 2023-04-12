@@ -17,7 +17,8 @@ header {
   border-bottom: 1px lightgray solid;
 }
 
-header h1, header h2 {
+header h1,
+header h2 {
   width: min(980px, 100% - 48px);
 }
 
@@ -89,6 +90,14 @@ ul#screener li .name {
 ul#screener li .price {
   font-size: 1.2em;
   font-family: 'Roboto Mono', monospace;
+}
+
+ul#screener li .price.up {
+  color: #080d;
+}
+
+ul#screener li .price.down {
+  color: #800d;
 }
 
 ul#screener li .date {
@@ -168,7 +177,7 @@ section .heartbeat {
   ul#screener li {
     padding: 4px 8px;
   }
-  
+
   ul#screener li .chain-logo-container {
     width: 16px;
     height: 16px;
