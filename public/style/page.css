@@ -33,81 +33,6 @@ header h2 {
   color: grey;
 }
 
-.screener {
-  padding: 16px 24px;
-  background-color: #0001;
-  border-bottom: 1px lightgray solid;
-}
-
-ul#screener {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 10px;
-}
-
-ul#screener li {
-  align-items: start;
-  padding: 6px 12px;
-  border: 1px lightgray solid;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #fffc;
-  position: relative;
-}
-
-ul#screener li:hover {
-  background-color: #fff4;
-}
-
-ul#screener li .chain-logo-container {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  top: -6px;
-  left: -6px;
-  background-color: white;
-  border-radius: 12px;
-  padding: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid lightgray;
-}
-
-ul#screener li .chain-logo-container .chain-logo {
-  max-height: 100%;
-}
-
-ul#screener li .name {
-  font-weight: 500;
-  min-width: 112px;
-  margin-right: 24px;
-  margin-top: -4px;
-}
-
-ul#screener li .price {
-  font-size: 1.2em;
-  font-family: 'Roboto Mono', monospace;
-}
-
-ul#screener li .price.up {
-  color: #080d;
-}
-
-ul#screener li .price.down {
-  color: #800d;
-}
-
-ul#screener li .date {
-  font-size: 0.8em;
-  font-weight: 300;
-  color: #666d;
-  position: absolute;
-  bottom: 3px;
-}
-
 main {
   padding: 16px 24px;
   width: 100%;
@@ -161,6 +86,81 @@ section .heartbeat {
   display: none;
 }
 
+.screener {
+  padding: 16px 24px;
+  background-color: #0001;
+  border-bottom: 1px lightgray solid;
+}
+
+.screener ul {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 10px;
+}
+
+.screener ul#screener li {
+  align-items: start;
+  padding: 6px 12px;
+  border: 1px lightgray solid;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #fffc;
+  position: relative;
+}
+
+.screener ul#screener li:hover {
+  background-color: #fff4;
+}
+
+.screener ul li .chain-logo-container {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: -6px;
+  left: -6px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid lightgray;
+}
+
+.screener ul li .chain-logo-container .chain-logo {
+  max-height: 100%;
+}
+
+.screener ul li .name {
+  font-weight: 500;
+  min-width: 112px;
+  margin-right: 24px;
+  margin-top: -4px;
+}
+
+.screener ul li .price {
+  font-size: 1.2em;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.screener ul li .price.up {
+  color: #080d;
+}
+
+.screener ul li .price.down {
+  color: #800d;
+}
+
+.screener ul li .date {
+  font-size: 0.8em;
+  font-weight: 300;
+  color: #666d;
+  position: absolute;
+  bottom: 3px;
+}
+
 @media (max-width: 780px) {
   html {
     font-size: 0.8em;
@@ -170,29 +170,26 @@ section .heartbeat {
     padding: 8px 6px;
   }
 
-  ul#screener {
+  .screener ul {
     gap: 6px 8px;
   }
 
-  ul#screener li {
+  .screener ul li {
     padding: 4px 8px;
   }
 
-  ul#screener li .chain-logo-container {
+  .screener ul li .chain-logo-container {
     width: 16px;
     height: 16px;
   }
 
-  ul#screener li .name {
+  .screener ul li .name {
     margin-top: -2px;
-  }
-
-  ul#screener li .name {
     min-width: 100px;
     margin-right: 12px;
   }
 
-  ul#screener li .date {
+  .screener ul li .date {
     bottom: 0;
   }
 }

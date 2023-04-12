@@ -104,11 +104,11 @@ const updateMain = async () => {
 const updateScreener = () => {
   const ul = document.getElementById('screener');
 
-	if(ul.children.length) {
-		Array.from(ul.children).forEach((li) => {
+  if(ul.children.length) {
+    Array.from(ul.children).forEach((li) => {
       if(!isInScreener(li.id)) li.remove()
-		})
-	}
+    })
+  }
   // ul.innerHTML = null;
 
   screener.forEach((contract) => {
@@ -139,8 +139,8 @@ const updateScreener = () => {
       divPrice.id = contract.networkId + '+' + contract.path + 'price';
       if (contract.price) {
         divPrice.innerHTML = contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals));
-        if (contract.price > contract.previousPrice) divPrice.classList.add('up')
-        else if (contract.price < contract.previousPrice) divPrice.classList.add('down')
+        if (contract.price > contract.averagePrice) divPrice.classList.add('up')
+        else if (contract.price < contract.averagePrice) divPrice.classList.add('down')
       }
 
       li.id = 'screener' + contract.networkId + '+' + contract.path;
@@ -154,10 +154,10 @@ const updateScreener = () => {
       let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
       if(price) {
         price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
-        if (contract.price > contract.previousPrice) {
+        if (contract.price > contract.averagePrice) {
           price.classList.toggle('down', false)
           price.classList.add('up')
-        } else if (contract.price < contract.previousPrice) {
+        } else if (contract.price < contract.averagePrice) {
           price.classList.toggle('up', false)
           price.classList.add('down')
         }
@@ -172,10 +172,10 @@ const updateScreenerByContract = (contract) => {
   let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
   if(price) {
     price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
-    if (contract.price > contract.previousPrice) {
+    if (contract.price > contract.averagePrice) {
       price.classList.toggle('down', false)
       price.classList.add('up')
-    } else if (contract.price < contract.previousPrice) {
+    } else if (contract.price < contract.averagePrice) {
       price.classList.toggle('up', false)
       price.classList.add('down')
     }
@@ -184,48 +184,54 @@ const updateScreenerByContract = (contract) => {
   if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
 }
 
-const updatePrice = (contract) => {
-  let delay = 2500;
+const updatePrice = async (contract) => {
+  let delay = 1500
   if(screener.length > 0) {
-    const contractToUpdate = contract ?? screener.find((contract) => Date.now() - contract.updatedAt > 7500 || !contract.updatedAt)
+    const contractsToUpdate = screener.filter((contract) => Date.now() - contract.updatedAt > (screener.length * 1250) || !contract.updatedAt)
+    const contractToUpdate = (contract ?? contractsToUpdate[Math.floor(Math.random()*contractsToUpdate.length)])
+
     if(contractToUpdate) {
-      delay = 100 + Math.floor(500 * Math.random())
+      delay = 400
 
       let web3 = getWeb3(contractToUpdate.networkId)
-    	if(web3) {
-    		try {
+      if(web3) {
+        try {
           contractToUpdate.updatedAt = Date.now()
-          getLatestRoundWeb3(contractToUpdate.proxyAddress, contractToUpdate.networkId).then(latestRoundData => {
-            if(!latestRoundData) return
+          const latestRoundData = await getLatestRoundWeb3(contractToUpdate.proxyAddress, contractToUpdate.networkId)
+          if(!latestRoundData) return
 
+          contractToUpdate.price = latestRoundData.answer
+          contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
+
+          if(contractToUpdate.roundId !== latestRoundData.roundId) {
             contractToUpdate.roundId = latestRoundData.roundId
-            contractToUpdate.price = latestRoundData.answer
-            contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
+            await updateHistory(contractToUpdate)
+          }
 
-            const num = BigInt(contractToUpdate.roundId)
-            const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
-            const phaseId = num >> 64n
-            const aggregatorRoundId = num & num2
-            const previousRound = (phaseId << 64n) | (aggregatorRoundId - 1n)
+          updateScreenerByContract(contractToUpdate)
 
-            getRoundDataWeb3(contractToUpdate.proxyAddress, previousRound, contractToUpdate.networkId).then(roundData => {
-              contractToUpdate.previousRoundId = roundData.roundId
-              contractToUpdate.previousPrice = roundData.answer
-              contractToUpdate.previousTimestamp = Number(roundData.updatedAt + "000")
-
-              updateScreenerByContract(contractToUpdate)
-            })
-
-            // updateScreenerByContract(contractToUpdate)
-        	}, error => {
-        		console.log(error)
-        	})
-    		} catch {}
-    	}
+        } catch(e) { console.error(e) }
+      }
     }
   }
 
   if(!contract) setTimeout(updatePrice, delay);
+}
+
+const updateHistory = async (contract) => {
+
+  const num = BigInt(contract.roundId)
+  const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
+  const phaseId = num >> 64n
+  const aggregatorRoundId = num & num2
+  const round = (phaseId << 64n) | (aggregatorRoundId)
+
+  const roundData1 = await getRoundDataWeb3(contract.proxyAddress, round - 1n, contract.networkId)
+  const roundData2 = await getRoundDataWeb3(contract.proxyAddress, round - 2n, contract.networkId)
+  const roundData3 = await getRoundDataWeb3(contract.proxyAddress, round - 3n, contract.networkId)
+  const roundData4 = await getRoundDataWeb3(contract.proxyAddress, round - 4n, contract.networkId)
+
+  contract.averagePrice = (Number(roundData1.answer) + Number(roundData2.answer) + Number(roundData3.answer) + Number(roundData4.answer)) / 4
 }
 
 const addToScreener = (e) => {
@@ -269,18 +275,18 @@ const searchContract = (id) => {
 
 const fetchPages = async () => {
   const list = await fetch(repoUrl + 'main/src/features/feeds/data/chains.ts')
-  .then((resp) => resp.text())
-  .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('export')[0]) // keep useful data
-  .then((str) =>
-  ('{ data:' + str + '}')
-  .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
-  .replaceAll('https": ', 'https:')
-  .replace(/\,(?!\s*?[\{\[\"\'\w])/g, '')
-)
-.then(JSON.parse)
-.then((json) => json.data);
+    .then((resp) => resp.text())
+    .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('export')[0]) // keep useful data
+    .then((str) =>
+    ('{ data:' + str + '}')
+    .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+    .replaceAll('https": ', 'https:')
+    .replace(/\,(?!\s*?[\{\[\"\'\w])/g, '')
+  )
+  .then(JSON.parse)
+  .then((json) => json.data);
 
-pages.push(...list);
+  pages.push(...list);
 };
 
 const fetchContracts = async (url) => {
@@ -317,18 +323,18 @@ const getWeb3 = (network) => {
 
 // Get latest price
 const getLatestRoundWeb3 = async (adress, network) => {
-	const web3 = getWeb3(network)
-	if(!web3) return
-	let contract = new (web3.eth).Contract(ABI, adress)
-	return await contract.methods.latestRoundData().call(async (error, value) => {
-		return value
-	})
+  const web3 = getWeb3(network)
+  if(!web3) return
+  let contract = new (web3.eth).Contract(ABI, adress)
+  return await contract.methods.latestRoundData().call(async (error, value) => {
+    return value
+  })
 }
 
 // Get historical price
 const getRoundDataWeb3 = async (adress, roundId, network) => {
-	let contract = new (getWeb3(network).eth).Contract(ABI, adress)
-	return await contract.methods.getRoundData(roundId).call(async (error, value) => {
-		return value
-	})
+  let contract = new (getWeb3(network).eth).Contract(ABI, adress)
+  return await contract.methods.getRoundData(roundId).call(async (error, value) => {
+    return value
+  })
 }
