@@ -10,6 +10,8 @@ const imgBaseUrl = repoUrl + 'main/public';
 
 let web3 = null;
 
+let searchInput = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
   web3 = {};
 
@@ -18,6 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       web3[network] = new Web3(NETWORK[network].rpc);
     }
   });
+
+  searchInput = document.getElementById('search')
+  searchInput.addEventListener('input', updateMain)
 
   await initialize();
 });
@@ -44,16 +49,19 @@ const updateMain = async () => {
   for (const page of pages) {
     for (const network of page.networks) {
       const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-');
-      contracts[networkId] = await fetchContracts(network.rddUrl);
+      if(!contracts[networkId]) contracts[networkId] = await fetchContracts(network.rddUrl);
       contracts[networkId].forEach((contract) => {
         const prefix = definePrefix(contract.path)
         if(prefix && prefix !== contract.valuePrefix) contract.valuePrefix = prefix
         contract.networkId = networkId
       });
 
-      const section = document.createElement('section');
+      const section = document.getElementById('section.' + networkId) ?? document.createElement('section');
+      section.id = 'section.' + networkId
       main.appendChild(section);
-      const h2 = document.createElement('h2');
+      const h2 = document.getElementById('h2.' + networkId) ?? document.createElement('h2');
+      h2.innerHTML = null
+      h2.id = 'h2.' + networkId
       const img = document.createElement('img');
       img.src = imgBaseUrl + page.img;
       img.alt = page.label;
@@ -63,10 +71,15 @@ const updateMain = async () => {
       h2.appendChild(spanH2);
       section.appendChild(h2);
 
-      const ul = document.createElement('ul');
+      const ul = document.getElementById('ul.' + networkId) ?? document.createElement('ul');
+      ul.id = 'ul.' + networkId
+      ul.innerHTML = null
       section.appendChild(ul);
 
       for (const contract of contracts[networkId]) {
+        if(!contract.name?.toLowerCase().includes(search.value)
+          && !contract.docs?.assetName?.toLowerCase().includes(search.value)
+          && !contract.feedType?.toLowerCase().includes(search.value)) continue
         const li = document.createElement('li');
         const divName = document.createElement('div');
         divName.classList.add('name');
