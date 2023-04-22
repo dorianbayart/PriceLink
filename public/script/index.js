@@ -77,9 +77,9 @@ const updateMain = async () => {
       section.appendChild(ul);
 
       for (const contract of contracts[networkId]) {
-        if(!contract.name?.toLowerCase().includes(search.value)
-          && !contract.docs?.assetName?.toLowerCase().includes(search.value)
-          && !contract.feedType?.toLowerCase().includes(search.value)) continue
+        if(!contract.name?.toLowerCase().includes(search.value.toLowerCase())
+          && !contract.docs?.assetName?.toLowerCase().includes(search.value.toLowerCase())
+          && !contract.feedType?.toLowerCase().includes(search.value.toLowerCase())) continue
         const li = document.createElement('li');
         const divName = document.createElement('div');
         divName.classList.add('name');

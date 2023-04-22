@@ -118,12 +118,6 @@ const SCREENER_INITIALIZER = [
     id: 'polygon.polygon-mainnet+AAPL-usd'
   },
   {
-    id: 'polygon.polygon-mainnet+googl-usd'
-  },
-  {
-    id: 'polygon.polygon-mainnet+msft-usd'
-  },
-  {
     id: 'polygon.polygon-mainnet+tsla-usd'
   },
   {
