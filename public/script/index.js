@@ -198,13 +198,14 @@ const updateScreenerByContract = (contract) => {
 }
 
 const updatePrice = async (contract) => {
-  let delay = 1500
+  let delay = 2500
   if(screener.length > 0) {
-    const contractsToUpdate = screener.filter((contract) => Date.now() - contract.updatedAt > (screener.length * 1250) || !contract.updatedAt)
+    const maxDelay = Math.floor(Math.log2(screener.length+1) * 5000 + 10000)
+    const contractsToUpdate = screener.filter((contract) => Date.now() - contract.updatedAt > maxDelay || !contract.updatedAt)
     const contractToUpdate = (contract ?? contractsToUpdate[Math.floor(Math.random()*contractsToUpdate.length)])
 
     if(contractToUpdate) {
-      delay = 400
+      delay = Math.floor(Math.random() * 600 + 400)
 
       let web3 = getWeb3(contractToUpdate.networkId)
       if(web3) {
@@ -239,12 +240,15 @@ const updateHistory = async (contract) => {
   const aggregatorRoundId = num & num2
   const round = (phaseId << 64n) | (aggregatorRoundId)
 
-  const roundData1 = await getRoundDataWeb3(contract.proxyAddress, round - 1n, contract.networkId)
-  const roundData2 = await getRoundDataWeb3(contract.proxyAddress, round - 2n, contract.networkId)
-  const roundData3 = await getRoundDataWeb3(contract.proxyAddress, round - 3n, contract.networkId)
-  const roundData4 = await getRoundDataWeb3(contract.proxyAddress, round - 4n, contract.networkId)
+  if(!contract.history || contract.history?.length === 0) {
+    contract.history = []
+  }
 
-  contract.averagePrice = (Number(roundData1.answer) + Number(roundData2.answer) + Number(roundData3.answer) + Number(roundData4.answer)) / 4
+  const roundData = await getRoundDataWeb3(contract.proxyAddress, round - 1n, contract.networkId)
+  if(Number(roundData.answer) > 0) contract.history.push(roundData)
+  contract.history = contract.history.slice(-5)
+
+  contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
 }
 
 const addToScreener = (e) => {
