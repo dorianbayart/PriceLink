@@ -245,10 +245,11 @@ const updateHistory = async (contract) => {
   }
 
   const roundData = await getRoundDataWeb3(contract.proxyAddress, round - 1n, contract.networkId)
-  if(Number(roundData.answer) > 0) contract.history.push(roundData)
-  contract.history = contract.history.slice(-5)
-
-  contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+  if(contract.history?.length >= 0) {
+    if(Number(roundData.answer) > 0) contract.history.push(roundData)
+    contract.history = contract.history.slice(-5)
+    contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+  }
 }
 
 const addToScreener = (e) => {
