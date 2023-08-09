@@ -11,6 +11,9 @@ const NETWORK = {
   'avalanche.avalanche-testnet': {
     rpc: 'https://api.avax-test.network/ext/bc/C/rpc',
   },
+  'base.base-mainnet': {
+    rpc: 'https://mainnet.base.org',
+  },
   'base.base-goerli-testnet': {
     rpc: 'https://goerli.base.org',
   },
