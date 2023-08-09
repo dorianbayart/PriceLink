@@ -292,7 +292,7 @@ const searchContract = (id) => {
 };
 
 const fetchPages = async () => {
-  const list = await fetch(repoUrl + 'main/src/features/feeds/data/chains.ts')
+  const list = await fetch(repoUrl + 'main/src/features/feeds/chains.ts')
     .then((resp) => resp.text())
     .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('// All')[0]) // keep useful data
     .then((str) =>
