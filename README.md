@@ -1,9 +1,9 @@
-# DeChainPricesX
+# PriceLink
 
 > <b>De</b>centralized  
 > block<b>Chain</b>  
 > <b>Chain</b>link  
-> <b>PricesX</b>  
+> <b>Prices</b>  
 
 ## What is it ?
 
