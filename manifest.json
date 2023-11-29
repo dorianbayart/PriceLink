@@ -1,6 +1,6 @@
 {
   "background_color": "#fff",
-  "categories": ["developer", "finance", "utilities"]
+  "categories": ["developer", "finance", "utilities"],
   "display": "standalone",
   "homepage_url": "https://dorianbayart.github.io/PriceLink/",
   "description": "Display real-time prices of stocks, forex, crypto and indices using Chainlink's decentralized on-chain smart-contracts.",
