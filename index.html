@@ -31,15 +31,20 @@
         <meta property="og:image" content="./public/assets/favicon_full.svg" />
         <meta property="og:site_name" content="PriceLink" />
 
-        <link rel="manifest" href="./manifest.json">
+        <link rel="manifest" href="./manifest.webmanifest">
         <!--
             <script src="/public/js/pwa.js"></script>
         -->
 
+        <script>
+          if('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./public/script/sw.js');
+          };
+        </script>
+
         <script
             defer
-            src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.0/web3.min.js"
-            integrity="sha512-bSQ2kf76XufUYS/4XinoHLp5S4lNOyRv0/x5UJACiOMy8ueqTNwRFfUZWmWpwnczjRp9SjiF1jrXbGEim7Y0Xg=="
+            src="https://cdn.jsdelivr.net/npm/web3@1/dist/web3.min.js"
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
         ></script>

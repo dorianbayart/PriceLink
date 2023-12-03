@@ -4,7 +4,7 @@
   "display": "standalone",
   "homepage_url": "https://dorianbayart.github.io/PriceLink/",
   "description": "Display real-time prices of stocks, forex, crypto and indices using Chainlink's decentralized on-chain smart-contracts.",
-  "iconPath": "./public/assets/favicon.svg",
+  "iconPath": "./public/assets/favicon_full.svg",
   "icons": [
     {
       "src": "./public/assets/favicon_full.svg",
@@ -13,6 +13,7 @@
       "purpose": "any maskable"
     },
   ],
+  "id": "PriceLink",
   "lang": "en",
   "orientation": "portrait",
   "name": "PriceLink",

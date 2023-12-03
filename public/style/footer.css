@@ -2,12 +2,12 @@
   margin: 24px 0 0;
   text-align: center;
   padding: 12px;
-  box-shadow: 0 0 0 1px #CCCC;
+  box-shadow: 0 0 0 1px #cccc;
   background-color: #0001;
 }
 
 .footer a:hover {
-  opacity: .75;
+  opacity: 0.75;
 }
 
 .link-with-img {
