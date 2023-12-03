@@ -22,7 +22,8 @@ const staleUrls = [
   'raw.githubusercontent.com/dorianbayart/documentation',
   'reference-data-directory.vercel.app',
   'web3.min.js',
-  'fonts.googleapis.com'
+  'fonts.googleapis.com',
+  'fonts.gstatic.com'
 ]
 
 self.addEventListener('install', (event) => {

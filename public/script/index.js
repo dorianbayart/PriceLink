@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchInput = document.getElementById('search')
   searchInput.addEventListener('input', updateMain)
 
-  await initialize();
+  initialize();
 });
 
 const initialize = async () => {
@@ -32,9 +32,9 @@ const initialize = async () => {
 
   await updateMain();
 
-  await initializeScreener();
+  initializeScreener();
 
-  updatePrice();
+  setTimeout(updatePrice, 2000);
 };
 
 const initializeScreener = async () => {
@@ -114,7 +114,7 @@ const updateMain = async () => {
   }
 }
 
-const updateScreener = () => {
+const updateScreener = async () => {
   const ul = document.getElementById('screener');
 
   if(ul.children.length) {
@@ -181,7 +181,7 @@ const updateScreener = () => {
   });
 };
 
-const updateScreenerByContract = (contract) => {
+const updateScreenerByContract = async (contract) => {
   let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
   if(price) {
     price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
@@ -252,7 +252,7 @@ const updateHistory = async (contract) => {
   }
 }
 
-const addToScreener = (e) => {
+const addToScreener = async (e) => {
   if (!e.target?.id && e.target?.parentElement) e = e.target.parentElement;
   if (e.target?.id) e = e.target;
 
@@ -264,7 +264,7 @@ const addToScreener = (e) => {
   updatePrice(contract);
 };
 
-const removeFromScreener = (e) => {
+const removeFromScreener = async (e) => {
   if (e.target.tagName.toLowerCase() !== 'li') e = e.target.parentElement;
   if (e.target?.id) e = e.target;
 
