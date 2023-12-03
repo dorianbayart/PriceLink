@@ -38,8 +38,8 @@ self.addEventListener('install', (event) => {
 /** Stale while revalidate */
 self.addEventListener('fetch', event => {
   const { request } = event
-  
-  if (request.url.startsWith(self.location.origin) || staleUrls.find(url => request.url.contains(url))) {
+
+  if (request.url.startsWith(self.location.origin) || staleUrls.find(url => request.url.includes(url))) {
     /* Stale while revalidate */
     console.log(`StaleWhileRevalidate - URL: ${request.url}`)
     event.respondWith(
