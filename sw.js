@@ -1,5 +1,7 @@
 'use strict'
 
+const CACHE_NAME = 'price-link-v0'
+
 const urlsToCache = [
   'index.html',
   './',
@@ -28,23 +30,25 @@ const staleUrls = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(async () => {
-    const cache = await caches.open("sw-cache")
+    const cache = await caches.open(CACHE_NAME)
     return cache.addAll(urlsToCache)
   })
 })
 
 /** Stale while revalidate */
 self.addEventListener('fetch', event => {
-  if (event.request.url.startsWith(self.location.origin) || staleUrls.find(url => event.request.url.contains(url))) {
+  const { request } = event
+  
+  if (request.url.startsWith(self.location.origin) || staleUrls.find(url => request.url.contains(url))) {
     /* Stale while revalidate */
-    console.log(`StaleWhileRevalidate - URL: ${event.request.url}`)
+    console.log(`StaleWhileRevalidate - URL: ${request.url}`)
     event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        const networkFetch = fetch(event.request).then(response => {
+      caches.match(request).then(cachedResponse => {
+        const networkFetch = fetch(request).then(response => {
           // update the cache with a clone of the network response
           const responseClone = response.clone()
-          caches.open(url.searchParams.get('name')).then(cache => {
-            cache.put(event.request, responseClone)
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseClone)
           })
           return response
         }).catch(function (reason) {
@@ -56,11 +60,11 @@ self.addEventListener('fetch', event => {
     )
   } else {
     /* Network firsst */
-    console.log(`NetworkFirst - URL: ${event.request.url}`)
+    console.log(`NetworkFirst - URL: ${request.url}`)
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
       .catch(error => {
-        return caches.match(event.request)
+        return caches.match(request)
       })
     )
   }
