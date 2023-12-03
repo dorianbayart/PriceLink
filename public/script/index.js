@@ -30,7 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 const initialize = async () => {
   await fetchPages();
 
-  await updateMain();
+  await populateContracts();
+
+  updateMain();
 
   initializeScreener();
 
@@ -43,13 +45,22 @@ const initializeScreener = async () => {
   }
 }
 
+const populateContracts = async () => {
+  for (const page of pages) {
+    for (const network of page.networks) {
+      const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-');
+      if(!contracts[networkId]) contracts[networkId] = await fetchContracts(network.rddUrl);
+    }
+  }
+}
+
 const updateMain = async () => {
   const main = document.getElementById('main');
 
   for (const page of pages) {
     for (const network of page.networks) {
       const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-');
-      if(!contracts[networkId]) contracts[networkId] = await fetchContracts(network.rddUrl);
+      
       contracts[networkId].forEach((contract) => {
         const prefix = definePrefix(contract.path)
         if(prefix && prefix !== contract.valuePrefix) contract.valuePrefix = prefix
