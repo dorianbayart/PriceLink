@@ -6,7 +6,10 @@ const urlsToCache = [
   'index.html',
   './',
   // assets
-  './public/assets/favicon_full.svg',
+  './public/assets/favicon_full_512.svg',
+  './public/assets/favicon_full_512.png',
+  './public/assets/favicon_256.svg',
+  './public/assets/favicon_256.png',
   // scripts
   './public/script/constant.js',
   './public/script/index.js',
