@@ -8,9 +8,14 @@
   "icons": [
     {
       "src": "./public/assets/favicon_full.svg",
-      "sizes": "256x256",
+      "sizes": "512x512",
+      "type": "image/svg"
+    },
+    {
+      "src": "./public/assets/favicon.svg",
+      "sizes": "144x144",
       "type": "image/svg",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ],
   "id": "PriceLink",
