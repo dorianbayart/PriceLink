@@ -1,183 +1,210 @@
-'use strict';
+'use strict'
 
-const pages = [];
-const contracts = {};
+const pages = []
+const contracts = {}
 
-const screener = [];
+const screener = []
 
-const repoUrl = 'https://raw.githubusercontent.com/dorianbayart/documentation/';
-const imgBaseUrl = repoUrl + 'main/public';
+const repoUrl = 'https://raw.githubusercontent.com/dorianbayart/documentation/'
+const imgBaseUrl = repoUrl + 'main/public'
 
-let web3 = null;
+let web3 = null
 
-let searchInput = null;
+let searchInput = null
 
 document.addEventListener('DOMContentLoaded', async () => {
-  web3 = {};
+  web3 = {}
 
   Object.keys(NETWORK).forEach((network) => {
     if (NETWORK[network].rpc.length > 0) {
-      web3[network] = new Web3(NETWORK[network].rpc);
+      web3[network] = new Web3(NETWORK[network].rpc)
     }
-  });
+  })
 
   searchInput = document.getElementById('search')
   searchInput.addEventListener('input', updateMain)
 
-  initialize();
-});
+  initialize()
+})
 
 const initialize = async () => {
-  await fetchPages();
+  const storedPages = JSON.parse(localStorage.getItem('pages'))
+  if(storedPages) {
+    pages.push(...storedPages)
 
-  await populateContracts();
+    const storedContracts = JSON.parse(localStorage.getItem('contracts'))
+    if(storedContracts) {
+      for (var networkId of Object.keys(storedContracts)) {
+        contracts[networkId] = storedContracts[networkId]
+      }
+    } else {
+      await populateContracts()
+    }
 
-  updateMain();
+    setTimeout(async () => {
+      await fetchPages()
+      updateMain()
+    }, 1500)
+  } else {
+    await fetchPages()
+  }
 
-  initializeScreener();
 
-  setTimeout(updatePrice, 2000);
-};
+  initializeScreener()
+  updateMain()
+
+  setTimeout(updatePrice, 2000)
+}
 
 const initializeScreener = async () => {
-  for(const item of SCREENER_INITIALIZER) {
-    addToScreener(item)
+  const storedScreener = JSON.parse(localStorage.getItem('screener'))
+  console.log('storedScreener', storedScreener)
+
+  if(storedScreener) {
+    screener.push(...storedScreener)
+    updateScreener()
+  } else {
+    for(const item of SCREENER_INITIALIZER) {
+      await addToScreener(item)
+    }
   }
 }
 
 const populateContracts = async () => {
   for (const page of pages) {
     for (const network of page.networks) {
-      const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-');
-      if(!contracts[networkId]) contracts[networkId] = await fetchContracts(network.rddUrl);
-    }
-  }
-}
+      const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-')
+      if(!contracts[networkId]) contracts[networkId] = await fetchContracts(network.rddUrl)
 
-const updateMain = async () => {
-  const main = document.getElementById('main');
-
-  for (const page of pages) {
-    for (const network of page.networks) {
-      const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-');
-      
       contracts[networkId].forEach((contract) => {
         const prefix = definePrefix(contract.path)
         if(prefix && prefix !== contract.valuePrefix) contract.valuePrefix = prefix
         contract.networkId = networkId
-      });
+      })
+    }
+  }
 
-      const section = document.getElementById('section.' + networkId) ?? document.createElement('section');
+  localStorage.setItem('contracts', JSON.stringify(contracts))
+}
+
+const updateMain = async () => {
+  const main = document.getElementById('main')
+
+  for (const page of pages) {
+    for (const network of page.networks) {
+      const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-')
+
+      const section = document.getElementById('section.' + networkId) ?? document.createElement('section')
       section.id = 'section.' + networkId
-      main.appendChild(section);
-      const h2 = document.getElementById('h2.' + networkId) ?? document.createElement('h2');
+      main.appendChild(section)
+      const h2 = document.getElementById('h2.' + networkId) ?? document.createElement('h2')
       h2.innerHTML = null
       h2.id = 'h2.' + networkId
-      const img = document.createElement('img');
-      img.src = imgBaseUrl + page.img;
-      img.alt = page.label;
-      const spanH2 = document.createElement('span');
-      spanH2.innerHTML = network.networkType === 'mainnet' ? network.name : page.label + ' - ' + network.name;
-      h2.appendChild(img);
-      h2.appendChild(spanH2);
-      section.appendChild(h2);
+      const img = document.createElement('img')
+      img.src = imgBaseUrl + page.img
+      img.alt = page.label
+      const spanH2 = document.createElement('span')
+      spanH2.innerHTML = network.networkType === 'mainnet' ? network.name : page.label + ' - ' + network.name
+      h2.appendChild(img)
+      h2.appendChild(spanH2)
+      section.appendChild(h2)
 
-      const ul = document.getElementById('ul.' + networkId) ?? document.createElement('ul');
+      const ul = document.getElementById('ul.' + networkId) ?? document.createElement('ul')
       ul.id = 'ul.' + networkId
       ul.innerHTML = null
-      section.appendChild(ul);
+      section.appendChild(ul)
 
       for (const contract of contracts[networkId]) {
         if(!contract.name?.toLowerCase().includes(search.value.toLowerCase())
           && !contract.docs?.assetName?.toLowerCase().includes(search.value.toLowerCase())
           && !contract.feedType?.toLowerCase().includes(search.value.toLowerCase())) continue
-        const li = document.createElement('li');
-        const divName = document.createElement('div');
-        divName.classList.add('name');
-        divName.innerHTML = contract.name;
-        li.appendChild(divName);
+        const li = document.createElement('li')
+        const divName = document.createElement('div')
+        divName.classList.add('name')
+        divName.innerHTML = contract.name
+        li.appendChild(divName)
 
-        const divAsset = document.createElement('div');
-        divAsset.classList.add('asset');
-        divAsset.innerHTML = contract.docs?.assetName ?? '';
-        li.appendChild(divAsset);
+        const divAsset = document.createElement('div')
+        divAsset.classList.add('asset')
+        divAsset.innerHTML = contract.docs?.assetName ?? ''
+        li.appendChild(divAsset)
 
-        const divType = document.createElement('div');
-        divType.classList.add('type');
-        divType.innerHTML = contract.docs?.feedType ?? '';
-        li.appendChild(divType);
+        const divType = document.createElement('div')
+        divType.classList.add('type')
+        divType.innerHTML = contract.docs?.feedType ?? ''
+        li.appendChild(divType)
 
-        const divThreshold = document.createElement('div');
-        divThreshold.classList.add('threshold');
-        divThreshold.innerHTML = contract.threshold + '%';
-        li.appendChild(divThreshold);
+        const divThreshold = document.createElement('div')
+        divThreshold.classList.add('threshold')
+        divThreshold.innerHTML = contract.threshold + '%'
+        li.appendChild(divThreshold)
 
-        const divHeartbeat = document.createElement('div');
-        divHeartbeat.classList.add('heartbeat');
-        divHeartbeat.innerHTML = contract.heartbeat + 's';
-        li.appendChild(divHeartbeat);
+        const divHeartbeat = document.createElement('div')
+        divHeartbeat.classList.add('heartbeat')
+        divHeartbeat.innerHTML = contract.heartbeat + 's'
+        li.appendChild(divHeartbeat)
 
-        li.id = networkId + '+' + contract.path;
-        li.addEventListener('click', addToScreener);
-        ul.appendChild(li);
+        li.id = networkId + '+' + contract.path
+        li.addEventListener('click', addToScreener)
+        ul.appendChild(li)
       }
     }
   }
 }
 
 const updateScreener = async () => {
-  const ul = document.getElementById('screener');
+  const ul = document.getElementById('screener')
 
   if(ul.children.length) {
     Array.from(ul.children).forEach((li) => {
       if(!isInScreener(li.id)) li.remove()
     })
   }
-  // ul.innerHTML = null;
+  // ul.innerHTML = null
 
   screener.forEach((contract) => {
-    let li = document.getElementById('screener' + contract.networkId + '+' + contract.path);
+    let li = document.getElementById('screener' + contract.networkId + '+' + contract.path)
     if (!li) {
       const page = pages.find(page => page.page === contract.networkId.split('.')[0])
-      const li = document.createElement('li');
+      const li = document.createElement('li')
       const divChainLogo = document.createElement('div')
       divChainLogo.classList.add('chain-logo-container')
-      const imgChain = document.createElement('img');
-      imgChain.classList.add('chain-logo');
-      imgChain.src = imgBaseUrl + page.img;
-      imgChain.alt = page.label;
+      const imgChain = document.createElement('img')
+      imgChain.classList.add('chain-logo')
+      imgChain.src = imgBaseUrl + page.img
+      imgChain.alt = page.label
       divChainLogo.appendChild(imgChain)
 
-      const divName = document.createElement('div');
-      divName.classList.add('name');
-      divName.innerHTML = contract.assetName;
+      const divName = document.createElement('div')
+      divName.classList.add('name')
+      divName.innerHTML = contract.assetName
 
-      const divDate = document.createElement('div');
-      divDate.classList.add('date');
-      divDate.id = contract.networkId + '+' + contract.path + 'date';
+      const divDate = document.createElement('div')
+      divDate.classList.add('date')
+      divDate.id = contract.networkId + '+' + contract.path + 'date'
       if (contract.timestamp)
-      divDate.innerHTML = (new Date(contract.timestamp)).toLocaleString();
+      divDate.innerHTML = (new Date(contract.timestamp)).toLocaleString()
 
-      const divPrice = document.createElement('div');
-      divPrice.classList.add('price');
-      divPrice.id = contract.networkId + '+' + contract.path + 'price';
+      const divPrice = document.createElement('div')
+      divPrice.classList.add('price')
+      divPrice.id = contract.networkId + '+' + contract.path + 'price'
       if (contract.price) {
-        divPrice.innerHTML = contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals));
+        divPrice.innerHTML = contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals))
         if (contract.price > contract.averagePrice) divPrice.classList.add('up')
         else if (contract.price < contract.averagePrice) divPrice.classList.add('down')
       }
 
-      li.id = 'screener' + contract.networkId + '+' + contract.path;
-      li.addEventListener('click', removeFromScreener);
-      li.appendChild(divChainLogo);
-      li.appendChild(divName);
-      li.appendChild(divPrice);
-      li.appendChild(divDate);
-      ul.appendChild(li);
+      li.id = 'screener' + contract.networkId + '+' + contract.path
+      li.addEventListener('click', removeFromScreener)
+      li.appendChild(divChainLogo)
+      li.appendChild(divName)
+      li.appendChild(divPrice)
+      li.appendChild(divDate)
+      ul.appendChild(li)
     } else {
-      let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
+      let price = document.getElementById(contract.networkId + '+' + contract.path + 'price')
       if(price) {
-        price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+        price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : ''
         if (contract.price > contract.averagePrice) {
           price.classList.toggle('down', false)
           price.classList.add('up')
@@ -186,16 +213,16 @@ const updateScreener = async () => {
           price.classList.add('down')
         }
       }
-      let date = document.getElementById(contract.networkId + '+' + contract.path + 'date');
-      if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
+      let date = document.getElementById(contract.networkId + '+' + contract.path + 'date')
+      if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
     }
-  });
-};
+  })
+}
 
 const updateScreenerByContract = async (contract) => {
-  let price = document.getElementById(contract.networkId + '+' + contract.path + 'price');
+  let price = document.getElementById(contract.networkId + '+' + contract.path + 'price')
   if(price) {
-    price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : '';
+    price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : ''
     if (contract.price > contract.averagePrice) {
       price.classList.toggle('down', false)
       price.classList.add('up')
@@ -204,8 +231,8 @@ const updateScreenerByContract = async (contract) => {
       price.classList.add('down')
     }
   }
-  let date = document.getElementById(contract.networkId + '+' + contract.path + 'date');
-  if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : '';
+  let date = document.getElementById(contract.networkId + '+' + contract.path + 'date')
+  if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
 }
 
 const updatePrice = async (contract) => {
@@ -240,7 +267,9 @@ const updatePrice = async (contract) => {
     }
   }
 
-  if(!contract) setTimeout(updatePrice, delay);
+  if(!contract) setTimeout(updatePrice, delay)
+
+  localStorage.setItem('screener', JSON.stringify(screener))
 }
 
 const updateHistory = async (contract) => {
@@ -264,20 +293,20 @@ const updateHistory = async (contract) => {
 }
 
 const addToScreener = async (e) => {
-  if (!e.target?.id && e.target?.parentElement) e = e.target.parentElement;
-  if (e.target?.id) e = e.target;
+  if (!e.target?.id && e.target?.parentElement) e = e.target.parentElement
+  if (e.target?.id) e = e.target
 
-  if (isInScreener(e.id)) return;
+  if (isInScreener(e.id)) return
 
   const contract = searchContract(e.id)
-  screener.push(contract);
-  updateScreener();
-  updatePrice(contract);
-};
+  screener.push(contract)
+  updateScreener()
+  updatePrice(contract)
+}
 
 const removeFromScreener = async (e) => {
-  if (e.target.tagName.toLowerCase() !== 'li') e = e.target.parentElement;
-  if (e.target?.id) e = e.target;
+  if (e.target.tagName.toLowerCase() !== 'li') e = e.target.parentElement
+  if (e.target?.id) e = e.target
 
   if (isInScreener(e.id)) {
     screener.splice(
@@ -285,22 +314,22 @@ const removeFromScreener = async (e) => {
         (contract) => e.id.split('+')[0].includes(contract.networkId) && contract.path === e.id.split('+')[1]
       ),
       1
-    );
-    updateScreener();
+    )
+    updateScreener()
   }
-};
+}
 
 const isInScreener = (id) => {
   return (
     screener.filter(
       (contract) => id.split('+')[0].includes(contract.networkId) && contract.path === id.split('+')[1]
     ).length > 0
-  );
-};
+  )
+}
 
 const searchContract = (id) => {
-  return contracts[id.split('+')[0]].find((contract) => contract.path === id.split('+')[1]);
-};
+  return contracts[id.split('+')[0]].find((contract) => contract.path === id.split('+')[1])
+}
 
 const fetchPages = async () => {
   const list = await fetch(repoUrl + 'main/src/features/data/chains.ts')
@@ -313,18 +342,31 @@ const fetchPages = async () => {
     .replace(/\,(?!\s*?[\{\[\"\'\w])/g, '')
   )
   .then(JSON.parse)
-  .then((json) => json.data);
+  .then((json) => json.data)
 
-  pages.push(...list);
-};
+  list.forEach(page => {
+    const i = pages.findIndex(p => p.label === page.label)
+    if(i > -1) {
+      pages[i] = page
+    } else {
+      pages.push(page)
+    }
+  })
+
+  //pages.push(...list)
+
+  await populateContracts()
+
+  localStorage.setItem('pages', JSON.stringify(pages))
+}
 
 const fetchContracts = async (url) => {
   const data = await fetch(url)
   .then((resp) => resp.text())
   .then(JSON.parse)
-  .then((array) => array.sort((a, b) => a.name.localeCompare(b.name)));
-  return data;
-};
+  .then((array) => array.sort((a, b) => a.name.localeCompare(b.name)))
+  return data
+}
 
 /* Utils - Round a price */
 const roundPrice = (price) => {
