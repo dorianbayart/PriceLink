@@ -3,7 +3,11 @@
   text-align: center;
   padding: 12px;
   border-top: 1px lightgray solid;
-  background-color: inherit;
+  background-color: #22223add;
+}
+
+.footer a {
+  color: inherit;
 }
 
 .footer a:hover {
