@@ -112,6 +112,7 @@ const updateMain = async () => {
 
       const ul = document.getElementById('ul.' + networkId) ?? document.createElement('ul')
       ul.id = 'ul.' + networkId
+      ul.classList.add('unselectable')
       ul.innerHTML = null
       section.appendChild(ul)
 
@@ -146,6 +147,7 @@ const updateMain = async () => {
         li.appendChild(divHeartbeat)
 
         li.id = networkId + '+' + contract.path
+        li.classList.add('unselectable')
         li.addEventListener('click', addToScreener)
         ul.appendChild(li)
       }
