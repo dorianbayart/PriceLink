@@ -9,7 +9,7 @@ html {
 body {
   display: flex;
   flex-flow: column;
-  min-width: 100vw;
+  width: 100%;
   min-height: 100vh;
   background-color: #282828;
   color: ghostwhite;
