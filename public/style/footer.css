@@ -2,8 +2,8 @@
   margin: 24px 0 0;
   text-align: center;
   padding: 12px;
-  box-shadow: 0 0 0 1px #cccc;
-  background-color: #0001;
+  border-top: 1px lightgray solid;
+  background-color: inherit;
 }
 
 .footer a:hover {
@@ -21,4 +21,5 @@
   margin-right: 8px;
   width: auto;
   height: 20px;
+  filter: invert(1);
 }
