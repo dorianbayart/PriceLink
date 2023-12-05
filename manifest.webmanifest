@@ -1,5 +1,5 @@
 {
-  "background_color": "#fff",
+  "background_color": "#282828",
   "categories": ["developer", "finance", "utilities"],
   "display": "standalone",
   "homepage_url": "https://dorianbayart.github.io/PriceLink/",
@@ -35,5 +35,5 @@
   "name": "PriceLink",
   "short_name": "PriceLink",
   "start_url": ".",
-  "theme_color": "#4a68ff"
+  "theme_color": "#22223a"
 }
