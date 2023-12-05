@@ -131,7 +131,7 @@ section .heartbeat {
 .screener::after {
   content: '\2193 Click on a line below to watch';
   position: absolute;
-  right: 24px;
+  right: 2%;
   font-size: .75rem;
   opacity: .5;
   bottom: calc(-.75rem - 8px);
