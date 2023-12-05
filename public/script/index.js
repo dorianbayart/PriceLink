@@ -100,6 +100,7 @@ const updateMain = async () => {
       const h2 = document.getElementById('h2.' + networkId) ?? document.createElement('h2')
       h2.innerHTML = null
       h2.id = 'h2.' + networkId
+      h2.classList.add('unselectable')
       const img = document.createElement('img')
       img.src = imgBaseUrl + page.img
       img.alt = page.label
