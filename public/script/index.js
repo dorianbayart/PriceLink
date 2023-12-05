@@ -103,6 +103,7 @@ const updateMain = async () => {
       const img = document.createElement('img')
       img.src = imgBaseUrl + page.img
       img.alt = page.label
+      img.title = page.label
       const spanH2 = document.createElement('span')
       spanH2.innerHTML = network.networkType === 'mainnet' ? network.name : page.label + ' - ' + network.name
       h2.appendChild(img)
@@ -173,6 +174,7 @@ const updateScreener = async () => {
       imgChain.classList.add('chain-logo')
       imgChain.src = imgBaseUrl + page.img
       imgChain.alt = page.label
+      imgChain.title = page.label
       divChainLogo.appendChild(imgChain)
 
       const divName = document.createElement('div')
