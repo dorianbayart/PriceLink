@@ -197,6 +197,7 @@ const updateScreener = async () => {
       }
 
       li.id = 'screener' + contract.networkId + '+' + contract.path
+      li.classList.add('unselectable')
       li.addEventListener('click', removeFromScreener)
       li.appendChild(divChainLogo)
       li.appendChild(divName)
