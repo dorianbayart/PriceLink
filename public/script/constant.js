@@ -117,9 +117,9 @@ const SCREENER_INITIALIZER = [
   {
     id: 'bnb-chain.bnb-chain-mainnet+spy-usd'
   },
-  {
-    id: 'polygon.polygon-mainnet+AAPL-usd'
-  },
+  // {
+  //   id: 'polygon.polygon-mainnet+AAPL-usd'
+  // },
   {
     id: 'polygon.polygon-mainnet+tsla-usd'
   },
@@ -129,9 +129,9 @@ const SCREENER_INITIALIZER = [
   {
     id: 'polygon.polygon-mainnet+xau-usd'
   },
-  {
-    id: 'polygon.polygon-mainnet+xag-usd'
-  },
+  // {
+  //   id: 'polygon.polygon-mainnet+xag-usd'
+  // },
   {
     id: 'ethereum.ethereum-mainnet+eur-usd'
   },
