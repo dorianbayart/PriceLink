@@ -199,6 +199,15 @@ const updateScreener = async () => {
         else if (contract.price < contract.averagePrice) divPrice.classList.add('down')
       }
 
+      const divPercent = document.createElement('div')
+      divPercent.classList.add('percent')
+      divPercent.id = contract.networkId + '+' + contract.path + 'percent'
+      if (contract.percentChange24h) {
+        divPercent.innerHTML = (contract.percentChange24h > 0 ? '+' : '') + roundPercentage(contract.percentChange24h)+'%'
+        if (contract.percentChange24h > 0) divPercent.classList.add('up')
+        else if (contract.percentChange24h < 0) divPercent.classList.add('down')
+      }
+
       li.id = 'screener' + contract.networkId + '+' + contract.path
       li.classList.add('unselectable')
       li.addEventListener('click', removeFromScreener)
@@ -206,6 +215,7 @@ const updateScreener = async () => {
       li.appendChild(divName)
       li.appendChild(divPrice)
       li.appendChild(divDate)
+      li.appendChild(divPercent)
       ul.appendChild(li)
     } else {
       let price = document.getElementById(contract.networkId + '+' + contract.path + 'price')
@@ -217,6 +227,17 @@ const updateScreener = async () => {
         } else if (contract.price < contract.averagePrice) {
           price.classList.toggle('up', false)
           price.classList.add('down')
+        }
+      }
+      let percent = document.getElementById(contract.networkId + '+' + contract.path + 'percent')
+      if(percent) {
+        percent.innerHTML = contract.percentChange24h ? (contract.percentChange24h > 0 ? '+' : '') + roundPercentage(contract.percentChange24h)+'%' : ''
+        if (contract.percentChange24h > 0) {
+          percent.classList.toggle('down', false)
+          percent.classList.add('up')
+        } else if (contract.percentChange24h < 0) {
+          percent.classList.toggle('up', false)
+          percent.classList.add('down')
         }
       }
       let date = document.getElementById(contract.networkId + '+' + contract.path + 'date')
@@ -235,6 +256,17 @@ const updateScreenerByContract = async (contract) => {
     } else if (contract.price < contract.averagePrice) {
       price.classList.toggle('up', false)
       price.classList.add('down')
+    }
+  }
+  let percent = document.getElementById(contract.networkId + '+' + contract.path + 'percent')
+  if(percent) {
+    percent.innerHTML = contract.percentChange24h ? (contract.percentChange24h > 0 ? '+' : '') + roundPercentage(contract.percentChange24h)+'%' : ''
+    if (contract.percentChange24h > 0) {
+      percent.classList.toggle('down', false)
+      percent.classList.add('up')
+    } else if (contract.percentChange24h < 0) {
+      percent.classList.toggle('up', false)
+      percent.classList.add('down')
     }
   }
   let date = document.getElementById(contract.networkId + '+' + contract.path + 'date')
@@ -263,7 +295,7 @@ const updatePrice = async (contract) => {
 
           if(contractToUpdate.roundId !== latestRoundData.roundId) {
             contractToUpdate.roundId = latestRoundData.roundId
-            await updateHistory(contractToUpdate)
+            updateHistory(contractToUpdate)
           }
 
           updateScreenerByContract(contractToUpdate)
@@ -279,6 +311,7 @@ const updatePrice = async (contract) => {
 }
 
 const updateHistory = async (contract) => {
+  let screenerUpdated = false
 
   const num = BigInt(contract.roundId)
   const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
@@ -286,16 +319,47 @@ const updateHistory = async (contract) => {
   const aggregatorRoundId = num & num2
   const round = (phaseId << 64n) | (aggregatorRoundId)
 
-  if(!contract.history || contract.history?.length === 0) {
+  if(contract.history === undefined || typeof(contract.history) === 'boolean') {
     contract.history = []
   }
 
-  const roundData = await getRoundDataWeb3(contract.proxyAddress, round - 1n, contract.networkId)
-  if(contract.history?.length >= 0) {
-    if(Number(roundData.answer) > 0) contract.history.push(roundData)
-    contract.history = contract.history.slice(-5)
-    contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+  // Build a 24h simplified history - 86400 seconds
+  let i = 1n
+  while((contract.history.length === 0 || Number(contract.history[0].updatedAt) > Date.now()/1000 - 86400) && round > i) {
+    const roundData = await getRoundDataWeb3(contract.proxyAddress, round - i, contract.networkId)
+    if(Number(roundData.answer) > 0) {
+      if(contract.history.length && roundData.updatedAt > contract.history[contract.history.length-1].updatedAt) {
+
+        contract.history.push(roundData)
+        const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
+        if(index > -1) {
+          contract.history.slice(index)
+        }
+      } else {
+        contract.history.unshift(roundData)
+      }
+
+      if(contract.heartbeat <= 3600) {
+        i += contract.heartbeat <= 120 ? 480n : 24n
+      } else {
+        if(contract.history.length > 2 && Number(contract.history[contract.history.length-2].updatedAt) + 15 * 60 > Number(contract.history[contract.history.length-1].updatedAt)) {
+          i += 12n
+        } else {
+          i++
+        }
+      }
+
+      contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+      contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
+      updateScreenerByContract(contract)
+      screenerUpdated = true
+    } else {
+      console.error(contract.name + ' had a problem fetching history', contract, roundData)
+    }
   }
+
+  contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
+  if(!screenerUpdated) updateScreenerByContract(contract)
 }
 
 const addToScreener = async (e) => {
@@ -384,6 +448,10 @@ const roundPrice = (price) => {
   if(price > 1000000000) return Math.round(price / 1000000000) + 'b'
   if(price > 1000000) return Math.round(price / 1000000) + 'm'
   return Math.round(price)
+}
+
+const roundPercentage = (percentage) => {
+  return percentage.toFixed(1)
 }
 
 const definePrefix = (path) => {

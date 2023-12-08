@@ -154,6 +154,7 @@ section .heartbeat {
   cursor: pointer;
   background-color: #3f3f3f;
   position: relative;
+  min-height: 2.8rem;
 }
 
 .screener ul#screener li:hover {
@@ -187,16 +188,28 @@ section .heartbeat {
 }
 
 .screener ul li .price {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-family: 'Roboto Mono', monospace;
   font-weight: 300;
+  margin-top: -6px;
 }
 
-.screener ul li .price.up {
+.screener ul li .percent {
+  font-size: 0.85em;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 300;
+  position: absolute;
+  bottom: 2px;
+  right: 16px;
+}
+
+.screener ul li .price.up,
+.screener ul li .percent.up {
   color: #94ffa0;
 }
 
-.screener ul li .price.down {
+.screener ul li .price.down,
+.screener ul li .percent.down {
   color: #ff8a8a;
 }
 
@@ -232,12 +245,21 @@ section .heartbeat {
 
   .screener ul#screener li .name {
     margin-top: -2px;
-    min-width: 96px;
+    min-width: 104px;
     margin-right: 12px;
+  }
+
+  .screener ul#screener li .price {
+    margin-top: -4px;
   }
 
   .screener ul#screener li .date {
     bottom: 0;
+  }
+
+  .screener ul#screener li .percent {
+    bottom: 0;
+    right: 10px;
   }
 }
 
