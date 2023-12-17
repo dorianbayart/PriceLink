@@ -319,11 +319,11 @@ const updateHistory = async (contract) => {
   const aggregatorRoundId = num & num2
   const round = (phaseId << 64n) | (aggregatorRoundId)
 
-  if(contract.history === undefined || typeof(contract.history) === 'boolean') {
+  if(contract.history === undefined || typeof(contract.history) === 'boolean' || contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) === -1) {
     contract.history = []
   }
 
-  // Build a 24h simplified history - 86400 seconds
+  // Build a 24h simplified history = 86400 seconds
   let i = 1n
   while((contract.history.length === 0 || Number(contract.history[0].updatedAt) > Date.now()/1000 - 86400) && round > i) {
     const roundData = await getRoundDataWeb3(contract.proxyAddress, round - i, contract.networkId)
