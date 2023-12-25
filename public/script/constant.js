@@ -47,6 +47,12 @@ const NETWORK = {
   'klaytn.klaytn-baobab-testnet': {
     rpc: 'https://api.baobab.klaytn.net:8651',
   },
+  'linea.linea-mainnet': {
+    rpc: 'https://1rpc.io/linea',
+  },
+  'linea.linea-testnet': {
+    rpc: 'https://rpc.goerli.linea.build',
+  },
   'metis.metis-mainnet': {
     rpc: 'https://andromeda.metis.io/?owner=1088',
   },
@@ -68,6 +74,18 @@ const NETWORK = {
   'polygon.polygon-mainnet': {
     rpc: 'https://polygon-rpc.com',
   },
+  'polygonzkevm.polygonzkevm-mainnet': {
+    rpc: 'https://1rpc.io/polygon/zkevm',
+  },
+  'polygonzkevm.polygonzkevm-testnet': {
+    rpc: 'https://rpc.public.zkevm-test.net',
+  },
+  'scroll.scroll-mainnet': {
+    rpc: 'https://rpc.scroll.io',
+  },
+  'scroll.scroll-testnet': {
+    rpc: 'https://sepolia-rpc.scroll.io',
+  },
   'solana.solana-devnet': {
     rpc: 'https://api.devnet.solana.com',
   },
@@ -79,6 +97,12 @@ const NETWORK = {
   },
   'starknet.starknet-testnet': {
     rpc: 'https://starknet-testnet.public.blastapi.io',
+  },
+  'zksync.zksync-mainnet': {
+    rpc: 'https://mainnet.era.zksync.io',
+  },
+  'zksync.zksync-testnet': { // deprecated
+    rpc: 'https://testnet.era.zksync.dev',
   },
 };
 
