@@ -5,6 +5,9 @@ const NETWORK = {
   'arbitrum.arbitrum-mainnet': {
     rpc: 'https://arb1.arbitrum.io/rpc',
   },
+  'arbitrum.arbitrum-sepolia': {
+    rpc: 'https://sepolia-rollup.arbitrum.io/rpc',
+  },
   'avalanche.avalanche-mainnet': {
     rpc: 'https://api.avax.network/ext/bc/C/rpc',
   },
@@ -22,6 +25,12 @@ const NETWORK = {
   },
   'bnb-chain.bnb-chain-testnet': {
     rpc: 'https://bsc-testnet.publicnode.com',
+  },
+  'celo.celo-mainnet': {
+    rpc: 'https://1rpc.io/celo',
+  },
+  'celo.celo-alfajores-testnet': {
+    rpc: 'https://alfajores-forno.celo-testnet.org',
   },
   'ethereum.ethereum-mainnet': {
     rpc: 'https://cloudflare-eth.com',
@@ -50,7 +59,7 @@ const NETWORK = {
   'linea.linea-mainnet': {
     rpc: 'https://1rpc.io/linea',
   },
-  'linea.linea-testnet': {
+  'linea.linea-goerli-testnet': {
     rpc: 'https://rpc.goerli.linea.build',
   },
   'metis.metis-mainnet': {
@@ -74,16 +83,16 @@ const NETWORK = {
   'polygon.polygon-mainnet': {
     rpc: 'https://polygon-rpc.com',
   },
-  'polygonzkevm.polygonzkevm-mainnet': {
+  'polygonzkevm.polygon-zkevm-mainnet': {
     rpc: 'https://1rpc.io/polygon/zkevm',
   },
-  'polygonzkevm.polygonzkevm-testnet': {
+  'polygonzkevm.polygon-zkevm-testnet': {
     rpc: 'https://rpc.public.zkevm-test.net',
   },
   'scroll.scroll-mainnet': {
     rpc: 'https://rpc.scroll.io',
   },
-  'scroll.scroll-testnet': {
+  'scroll.scroll-sepolia-testnet': {
     rpc: 'https://sepolia-rpc.scroll.io',
   },
   'solana.solana-devnet': {
@@ -98,10 +107,10 @@ const NETWORK = {
   'starknet.starknet-testnet': {
     rpc: 'https://starknet-testnet.public.blastapi.io',
   },
-  'zksync.zksync-mainnet': {
+  'zksync.zksync-era-mainnet': {
     rpc: 'https://mainnet.era.zksync.io',
   },
-  'zksync.zksync-testnet': { // deprecated
+  'zksync.zksync-goerli-testnet': { // deprecated
     rpc: 'https://testnet.era.zksync.dev',
   },
 };

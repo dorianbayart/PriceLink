@@ -277,8 +277,8 @@ const updatePrice = async (contract) => {
   let delay = 2500
   if(screener.length > 0) {
     const maxDelay = Math.floor(Math.log2(screener.length+1) * 5000 + 10000)
-    const contractsToUpdate = screener.filter((contract) => Date.now() - contract.updatedAt > maxDelay || !contract.updatedAt)
-    const contractToUpdate = (contract ?? contractsToUpdate[Math.floor(Math.random()*contractsToUpdate.length)])
+    const contractsToUpdate = screener.filter((contract) => !contract.updatedAt || Date.now() - contract.updatedAt > maxDelay)
+    const contractToUpdate = (contract ?? contractsToUpdate[Math.floor(Math.random() * contractsToUpdate.length)])
 
     if(contractToUpdate) {
       delay = Math.floor(Math.random() * 600 + 400)
