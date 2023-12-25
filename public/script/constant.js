@@ -18,10 +18,10 @@ const NETWORK = {
     rpc: 'https://goerli.base.org',
   },
   'bnb-chain.bnb-chain-mainnet': {
-    rpc: 'https://bsc-dataseed.binance.org',
+    rpc: 'https://bsc.publicnode.com',
   },
   'bnb-chain.bnb-chain-testnet': {
-    rpc: 'https://data-seed-prebsc-1-s1.binance.org:8545',
+    rpc: 'https://bsc-testnet.publicnode.com',
   },
   'ethereum.ethereum-mainnet': {
     rpc: 'https://cloudflare-eth.com',
