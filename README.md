@@ -1,13 +1,15 @@
-# PriceLink
+# PriceLink - PWA
 
-> <b>De</b>centralized  
-> block<b>Chain</b>  
-> <b>Chain</b>link  
-> <b>Prices</b>  
+> Chainlink
+> Realtime
+> Prices
+> Decentralized
+> OnChain
 
 ## What is it ?
 
-Display real-time prices of stocks, forex, crypto or indices using Chainlink's decentralized on-chain smart-contracts.
+Display real-time prices of stocks, forex, crypto or indices using Chainlink's decentralized on-chain smart-contracts.  
+PriceLink is installable as a Progressive Web Application (PWA).
 
 ## Why ?
 
