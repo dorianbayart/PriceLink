@@ -1,10 +1,10 @@
 # PriceLink - PWA
 
-> Chainlink
-> Realtime
-> Prices
-> Decentralized
-> OnChain
+> Chainlink  
+> Realtime  
+> Prices  
+> Decentralized  
+> OnChain  
 
 ## What is it ?
 
