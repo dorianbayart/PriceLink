@@ -19,6 +19,7 @@ const urlsToCache = [
   './public/style/reset.css',
   // others
   'https://cdn.jsdelivr.net/npm/web3@1/dist/web3.min.js',
+  'https://cdn.jsdelivr.net/npm/@observablehq/plot/+esm',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;200;300;400;500&display=swap'
 ]

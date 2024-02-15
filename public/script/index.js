@@ -1,5 +1,7 @@
 'use strict'
 
+import * as Plot from 'plot'
+
 const pages = []
 const contracts = {}
 
@@ -208,6 +210,16 @@ const updateScreener = async () => {
         else if (contract.percentChange24h < 0) divPercent.classList.add('down')
       }
 
+      const divGraph = document.createElement('div')
+      divGraph.classList.add('graph')
+      divGraph.id = contract.networkId + '+' + contract.path + 'graph'
+      if(contract.history.length > 1) {
+        const plot = Plot.line(
+          contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+          { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
+        divGraph.append(plot)
+      }
+
       li.id = 'screener' + contract.networkId + '+' + contract.path
       li.classList.add('unselectable')
       li.addEventListener('click', removeFromScreener)
@@ -216,6 +228,7 @@ const updateScreener = async () => {
       li.appendChild(divPrice)
       li.appendChild(divDate)
       li.appendChild(divPercent)
+      li.appendChild(divGraph)
       ul.appendChild(li)
     } else {
       let price = document.getElementById(contract.networkId + '+' + contract.path + 'price')
@@ -242,6 +255,15 @@ const updateScreener = async () => {
       }
       let date = document.getElementById(contract.networkId + '+' + contract.path + 'date')
       if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
+
+      let divGraph = document.getElementById(contract.networkId + '+' + contract.path + 'graph')
+      if(divGraph && contract.history.length > 1) {
+        divGraph.innerHTML = null
+        const plot = Plot.line(
+          contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+          { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
+        divGraph.append(plot)
+      }
     }
   })
 }
@@ -271,6 +293,15 @@ const updateScreenerByContract = async (contract) => {
   }
   let date = document.getElementById(contract.networkId + '+' + contract.path + 'date')
   if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
+
+  let divGraph = document.getElementById(contract.networkId + '+' + contract.path + 'graph')
+  if(divGraph && contract.history.length > 1) {
+    divGraph.innerHTML = null
+    const plot = Plot.line(
+      contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+      { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
+    divGraph.append(plot)
+  }
 }
 
 const updatePrice = async (contract) => {
@@ -340,10 +371,10 @@ const updateHistory = async (contract) => {
       }
 
       if(contract.heartbeat <= 3600) {
-        i += contract.heartbeat <= 120 ? 480n : 24n
+        i += contract.heartbeat <= 120 ? 240n : 12n
       } else {
         if(contract.history.length > 2 && Number(contract.history[contract.history.length-2].updatedAt) + 15 * 60 > Number(contract.history[contract.history.length-1].updatedAt)) {
-          i += 12n
+          i += 4n
         } else {
           i++
         }

@@ -37,6 +37,14 @@
             <script src="/public/js/pwa.js"></script>
         -->
 
+        <script type="importmap">
+            {
+                "imports": {
+                    "plot": "https://cdn.jsdelivr.net/npm/@observablehq/plot/+esm"
+                }
+            }
+        </script>
+
         <script>
           if('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
@@ -51,7 +59,7 @@
         ></script>
 
         <script defer src="./public/script/constant.js"></script>
-        <script defer src="./public/script/index.js"></script>
+        <script defer src="./public/script/index.js" type="module"></script>
 
         <link rel="stylesheet" href="./public/style/reset.css" />
         <link rel="stylesheet" href="./public/style/page.css" />
