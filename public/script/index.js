@@ -389,6 +389,7 @@ const updateHistory = async (contract) => {
     }
   }
 
+  contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
   contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
   if(!screenerUpdated) updateScreenerByContract(contract)
 }
