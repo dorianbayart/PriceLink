@@ -20,6 +20,9 @@ const NETWORK = {
   'base.base-goerli-testnet': {
     rpc: 'https://goerli.base.org',
   },
+  'base.base-sepolia-testnet': {
+    rpc: 'https://sepolia.base.org',
+  },
   'bnb-chain.bnb-chain-mainnet': {
     rpc: 'https://bsc.publicnode.com',
   },
