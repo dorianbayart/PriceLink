@@ -324,7 +324,7 @@ const updatePrice = async (contract) => {
           contractToUpdate.price = latestRoundData.answer
           contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
-          if(contractToUpdate.roundId !== latestRoundData.roundId) {
+          if(contractToUpdate.roundId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].roundId !== latestRoundData.roundId) {
             contractToUpdate.roundId = latestRoundData.roundId
             updateHistory(contractToUpdate)
           }
@@ -360,7 +360,7 @@ const updateHistory = async (contract) => {
   let i = 0n
   while(
     (contract.history.length === 0 || Number(contract.history[0].updatedAt) > Date.now()/1000 - 86400) && round > i
-    || (mostRecentHistoryRoundId && (mostRecentHistoryRoundId + i < BigInt(contract.history[contract.history.length-1].roundId)))
+    || (mostRecentHistoryRoundId && (mostRecentHistoryRoundId + i < BigInt(contract.roundId)))
   ) {
     const roundData = await getRoundDataWeb3(contract.proxyAddress, round - i, contract.networkId)
     if(Number(roundData.answer) > 0) {
