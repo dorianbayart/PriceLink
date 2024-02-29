@@ -354,9 +354,14 @@ const updateHistory = async (contract) => {
     contract.history = []
   }
 
+  const mostRecentHistoryRoundId = contract.history.length > 0 ? BigInt(contract.history[contract.history.length-1].roundId) : undefined
+
   // Build a 24h simplified history = 86400 seconds
-  let i = 1n
-  while((contract.history.length === 0 || Number(contract.history[0].updatedAt) > Date.now()/1000 - 86400) && round > i) {
+  let i = 0n
+  while(
+    (contract.history.length === 0 || Number(contract.history[0].updatedAt) > Date.now()/1000 - 86400) && round > i
+    || (mostRecentHistoryRoundId && (mostRecentHistoryRoundId + i < BigInt(contract.history[contract.history.length-1].roundId)))
+  ) {
     const roundData = await getRoundDataWeb3(contract.proxyAddress, round - i, contract.networkId)
     if(Number(roundData.answer) > 0) {
       if(contract.history.length && roundData.updatedAt > contract.history[contract.history.length-1].updatedAt) {
@@ -382,10 +387,12 @@ const updateHistory = async (contract) => {
 
       contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
       contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
+      contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
       updateScreenerByContract(contract)
       screenerUpdated = true
     } else {
       console.error(contract.name + ' had a problem fetching history', contract, roundData)
+      continue
     }
   }
 
