@@ -4,10 +4,21 @@
   font-weight: 300;
 }
 
+.price.up,
+.percent.up {
+  color: #94ffa0;
+}
+
+.price.down,
+.percent.down {
+  color: #ff8a8a;
+}
+
 body {
   display: flex;
   flex-flow: column;
   width: 100%;
+  overflow-x: hidden;
   min-height: 100vh;
   background-color: #282828;
   color: ghostwhite;
@@ -119,7 +130,7 @@ section .heartbeat {
 }
 
 .screener::before {
-  content: '\2191 \00A0 Click on a ticker to unwatch';
+  content: '\2191 \00A0 Click on a ticker for details';
   position: absolute;
   bottom: 4px;
   right: 2%;
@@ -202,16 +213,6 @@ section .heartbeat {
   position: absolute;
   bottom: 2px;
   right: calc(16px + 2rem);
-}
-
-.screener ul li .price.up,
-.screener ul li .percent.up {
-  color: #94ffa0;
-}
-
-.screener ul li .price.down,
-.screener ul li .percent.down {
-  color: #ff8a8a;
 }
 
 .screener ul li .date {

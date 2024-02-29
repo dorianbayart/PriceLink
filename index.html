@@ -63,6 +63,7 @@
 
         <link rel="stylesheet" href="./public/style/reset.css" />
         <link rel="stylesheet" href="./public/style/page.css" />
+        <link rel="stylesheet" href="./public/style/details.css" />
         <link rel="stylesheet" href="./public/style/footer.css">
     </head>
 
@@ -72,17 +73,32 @@
             <h2>Chainlink - Realtime - Prices - Decentralized - OnChain</h2>
         </header>
 
-        <div class="screener">
+        <div class="screener translatable">
             <ul id="screener"></ul>
         </div>
 
-        <div class="search">
+        <div class="search translatable">
           <input type="text" id="search" placeholder="Search">
         </div>
 
-        <main id="main"></main>
+        <main id="main" class="translatable"></main>
 
-        <footer class="footer">
+        <section id="details" class="translatable">
+          <button id="backFromDetails">
+            <img src="./public/assets/buttons/compact-chevron-left.svg" width="32px" height="32px" title="Back" alt="Back button" />
+          </button>
+
+          <div id="details-content">
+            <h1 id="details-assetName"></h1>
+            <h2 id="details-name"></h2>
+            <h3 id="details-feedType"></h3>
+            <div id="details-price" class="price"></div>
+            <div id="details-percentChange" class="percent"></div>
+            <div id="details-graph"></div>
+          </div>
+        </section>
+
+        <footer class="footer translatable">
             <a id="github_link" class="link-with-img" title="Go to PriceLink Github" href="https://github.com/dorianbayart/PriceLink" target="_blank" rel="noopener">
               <img src="./public/assets/github-mark.svg" title="Github Logo" alt="Github Logo" width="20px" height="20px" />
               <span>PriceLink</span>

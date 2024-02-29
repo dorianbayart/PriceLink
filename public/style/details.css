@@ -1,0 +1,71 @@
+.translatable {
+  transition: 600ms;
+}
+
+.translated {
+  transform: translateX(-100vw);
+}
+
+section#details {
+  background-color: #22223add;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  left: 100%;
+  z-index: 1;
+  top: 80px;
+  width: 100%;
+  height: calc(100% - 80px);
+  transition: 750ms;
+  display: flex;
+}
+
+section#details.unhide {
+  opacity: 1;
+  transform: translateX(-100vw);
+}
+
+section#details button#backFromDetails {
+  border: none;
+  background-color: #4a68ff88;
+  cursor: pointer;
+}
+
+section#details button#backFromDetails:hover {
+  background-color: #4a68ff;
+}
+
+/* section#details #details-content {} */
+
+#details-assetName,
+#details-name,
+#details-feedType,
+#details-price,
+#details-percentChange {
+  padding: 0.4rem 0 0 1rem;
+}
+
+section#details #details-assetName {
+  font-size: 2rem;
+}
+
+section#details #details-name {
+  font-size: 1.4rem;
+}
+
+section#details #details-feedType {
+  font-size: 1.2rem;
+}
+
+section#details #details-price {
+  font-size: 1.6rem;
+}
+
+section#details #details-percentChange {
+  font-size: 1.4rem;
+}
+
+section#details #details-graph {
+  position: absolute;
+  bottom: 0;
+}

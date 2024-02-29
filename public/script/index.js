@@ -12,7 +12,7 @@ const imgBaseUrl = repoUrl + 'main/public'
 
 let web3 = null
 
-let searchInput = null
+let searchInput = null, backFromDetails = null, detailsContract = null
 
 document.addEventListener('DOMContentLoaded', async () => {
   web3 = {}
@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   searchInput = document.getElementById('search')
   searchInput.addEventListener('input', updateMain)
+
+  backFromDetails = document.getElementById('backFromDetails')
+  backFromDetails.addEventListener('click', hideDetails)
 
   initialize()
 })
@@ -302,6 +305,10 @@ const updateScreenerByContract = async (contract) => {
       { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
     divGraph.append(plot)
   }
+
+  if(contract.networkId + '+' + contract.path === detailsContract) {
+    addToDetails(contract)
+  }
 }
 
 const updatePrice = async (contract) => {
@@ -385,9 +392,9 @@ const updateHistory = async (contract) => {
         }
       }
 
+      contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
       contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
       contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
-      contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
       updateScreenerByContract(contract)
       screenerUpdated = true
     } else {
@@ -413,9 +420,61 @@ const addToScreener = async (e) => {
   updatePrice(contract)
 }
 
+const addToDetails = async (contract) => {
+  document.getElementById('details-assetName').innerHTML = contract.assetName
+  document.getElementById('details-name').innerHTML = contract.name
+  document.getElementById('details-feedType').innerHTML = contract.feedType
+  const price = document.getElementById('details-price')
+  price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : ''
+  const percent = document.getElementById('details-percentChange')
+  percent.innerHTML = contract.percentChange24h ? (contract.percentChange24h > 0 ? '+' : '') + roundPercentage(contract.percentChange24h)+'%' : ''
+
+  if (contract.price > contract.averagePrice) {
+    price.classList.toggle('down', false)
+    price.classList.add('up')
+  } else if (contract.price < contract.averagePrice) {
+    price.classList.toggle('up', false)
+    price.classList.add('down')
+  }
+
+  if (contract.percentChange24h > 0) {
+    percent.classList.toggle('down', false)
+    percent.classList.add('up')
+  } else if (contract.percentChange24h < 0) {
+    percent.classList.toggle('up', false)
+    percent.classList.add('down')
+  }
+
+  let divGraph = document.getElementById('details-graph')
+  if(divGraph && contract.history.length > 1) {
+    divGraph.innerHTML = null
+    const plot = Plot.line(
+      contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+      { stroke: "ghostwhite" }).plot({ height: window.innerHeight - 80, width: window.innerWidth, axis: null });
+    divGraph.append(plot)
+  }
+}
+
 const removeFromScreener = async (e) => {
   if (e.target.tagName.toLowerCase() !== 'li') e = e.target.parentElement
   if (e.target?.id) e = e.target
+
+  if (isInScreener(e.id)) {
+    const contract = screener.find(
+      (contract) => e.id.split('+')[0].includes(contract.networkId) && contract.path === e.id.split('+')[1]
+    )
+
+
+    scrollTo(0, 0)
+    Array.from(document.getElementsByClassName("translatable")).forEach((item, i) => {
+      item.classList.add("translated")
+    })
+
+    detailsContract = contract.networkId + '+' + contract.path
+
+    addToDetails(contract)
+  }
+  /*return
 
   if (isInScreener(e.id)) {
     screener.splice(
@@ -425,7 +484,15 @@ const removeFromScreener = async (e) => {
       1
     )
     updateScreener()
-  }
+  }*/
+}
+
+const hideDetails = async (e) => {
+  detailsContract = null
+
+  Array.from(document.getElementsByClassName("translatable")).forEach((item, i) => {
+    item.classList.remove("translated")
+  })
 }
 
 const isInScreener = (id) => {
