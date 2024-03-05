@@ -332,7 +332,7 @@ const updatePrice = async (contract) => {
           contractToUpdate.price = latestRoundData.answer
           contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
-          if(contractToUpdate.roundId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].roundId !== latestRoundData.roundId) {
+          if(!contractToUpdate.roundId || !latestRoundData.roundId || contractToUpdate.history.length === 0 || contractToUpdate.roundId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].roundId !== latestRoundData.roundId) {
             contractToUpdate.roundId = latestRoundData.roundId
             updateHistory(contractToUpdate)
           }
@@ -499,7 +499,7 @@ const hideDetails = async (e) => {
 const isInScreener = (id) => {
   return (
     screener.filter(
-      (contract) => id.split('+')[0].includes(contract.networkId) && contract.path === id.split('+')[1]
+      (contract) => contract && id.split('+')[0].includes(contract.networkId) && contract.path === id.split('+')[1]
     ).length > 0
   )
 }
