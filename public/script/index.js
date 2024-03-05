@@ -172,6 +172,7 @@ const updateScreener = async () => {
   // ul.innerHTML = null
 
   screener.forEach((contract) => {
+    if(!contract) return
     let li = document.getElementById('screener' + contract.networkId + '+' + contract.path)
     if (!li) {
       const page = pages.find(page => page.page === contract.networkId.split('.')[0])
@@ -315,7 +316,7 @@ const updatePrice = async (contract) => {
   let delay = 2500
   if(screener.length > 0) {
     const maxDelay = Math.floor(Math.log2(screener.length+1) * 5000 + 10000)
-    const contractsToUpdate = screener.filter((contract) => !contract.updatedAt || Date.now() - contract.updatedAt > maxDelay)
+    const contractsToUpdate = screener.filter((contract) => contract && (!contract.updatedAt || Date.now() - contract.updatedAt > maxDelay))
     const contractToUpdate = (contract ?? contractsToUpdate[Math.floor(Math.random() * contractsToUpdate.length)])
 
     if(contractToUpdate) {
