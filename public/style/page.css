@@ -230,6 +230,18 @@ section .heartbeat {
   margin-right: -8px;
 }
 
+.screener #trash {
+  display: none;
+  justify-content: center;
+}
+
+.screener #trash img {
+  display: inline-flex;
+  border-radius: 25px;
+  padding: 8px;
+  background-color: coral;
+}
+
 @media (max-width: 820px) {
   html {
     font-size: 0.95rem;

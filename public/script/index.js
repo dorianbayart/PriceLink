@@ -4,6 +4,7 @@ import * as Plot from 'plot'
 
 const pages = []
 const contracts = {}
+const dragDrop = { from: -1, to: -1 }
 
 const screener = []
 
@@ -164,6 +165,12 @@ const updateMain = async () => {
 const updateScreener = async () => {
   const ul = document.getElementById('screener')
 
+  if(ul.getAttribute('listeners') !== 'true') {
+    ul.addEventListener('dragover', allowDrop)
+    ul.addEventListener('drop', drop)
+    ul.setAttribute('listener', 'true')
+  }
+
   if(ul.children.length) {
     Array.from(ul.children).forEach((li) => {
       if(!isInScreener(li.id)) li.remove()
@@ -226,7 +233,10 @@ const updateScreener = async () => {
 
       li.id = 'screener' + contract.networkId + '+' + contract.path
       li.classList.add('unselectable')
+      li.draggable = true
       li.addEventListener('click', removeFromScreener)
+      li.addEventListener('dragstart', drag)
+
       li.appendChild(divChainLogo)
       li.appendChild(divName)
       li.appendChild(divPrice)
@@ -271,6 +281,60 @@ const updateScreener = async () => {
     }
   })
 }
+
+const drag = (ev) => {
+  const movedItemPosition = screener.findIndex(item => item && 'screener' + item.networkId + '+' + item.path === ev.target.id)
+  ev.dataTransfer.effectAllowed = 'move'
+  dragDrop.from = movedItemPosition
+  const trash = document.getElementById('trash')
+  trash.style.display = 'flex'
+  if(trash.getAttribute('listeners') !== 'true') {
+    trash.addEventListener('dragover', dragOverTrash)
+    trash.addEventListener('drop', drop)
+    trash.setAttribute('listener', 'true')
+  }
+}
+
+const allowDrop = (ev) => {
+  ev.preventDefault()
+  let target = ev.target
+  console.log(target)
+  if(!target || !target.id || target.id === 'screener') return
+  while(target.tagName !== "LI" || !target.id) {
+    target = target.parentElement
+  }
+  const moveToPosition = screener.findIndex(item => item && 'screener' + item.networkId + '+' + item.path === target.id)
+  ev.dataTransfer.dropEffect = 'move'
+  dragDrop.to = moveToPosition
+}
+
+const dragOverTrash = (ev) => {
+  ev.preventDefault()
+
+  dragDrop.to = -1
+}
+
+const drop = (ev) => {
+  ev.preventDefault()
+
+  if(dragDrop.from !== dragDrop.to) {
+    if(dragDrop.to === -1 && ev.target.tagName === "IMG") {
+      delete screener[dragDrop.from]
+    } else if (dragDrop.to > -1) {
+      const item = screener[dragDrop.from]
+      screener.splice(dragDrop.from, 1)
+      screener.splice(dragDrop.to, 0, item)
+    }
+    document.getElementById('screener').innerHTML = null
+    updateScreener()
+  }
+
+  dragDrop.from = -1
+  dragDrop.to = -1
+  document.getElementById('trash').style.display = 'none'
+}
+
+
 
 const updateScreenerByContract = async (contract) => {
   let price = document.getElementById(contract.networkId + '+' + contract.path + 'price')
@@ -416,6 +480,7 @@ const addToScreener = async (e) => {
   if (isInScreener(e.id)) return
 
   const contract = searchContract(e.id)
+  if(!contract) return
   screener.push(contract)
   updateScreener()
   updatePrice(contract)
@@ -462,7 +527,7 @@ const removeFromScreener = async (e) => {
 
   if (isInScreener(e.id)) {
     const contract = screener.find(
-      (contract) => e.id.split('+')[0].includes(contract.networkId) && contract.path === e.id.split('+')[1]
+      (contract) => contract && e.id.split('+')[0].includes(contract.networkId) && contract.path === e.id.split('+')[1]
     )
 
 

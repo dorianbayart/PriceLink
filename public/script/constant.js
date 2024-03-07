@@ -185,12 +185,6 @@ const SCREENER_INITIALIZER = [
   },
   {
     id: 'polygon.polygon-mainnet+link-usd'
-  },
-  {
-    id: 'ethereum.ethereum-mainnet+rai-usd'
-  },
-  {
-    id: 'gnosis-chain.gnosis-chain-mainnet+dpi-usd'
   }
 ]
 
