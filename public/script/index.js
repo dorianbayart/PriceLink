@@ -103,6 +103,15 @@ const updateMain = async () => {
       const section = document.getElementById('section.' + networkId) ?? document.createElement('section')
       section.id = 'section.' + networkId
       main.appendChild(section)
+
+      if(contracts[networkId].filter(contract => search.value.length === 0 || contract.name?.toLowerCase().includes(search.value.toLowerCase())
+        || contract.docs?.assetName?.toLowerCase().includes(search.value.toLowerCase())
+        || contract.feedType?.toLowerCase().includes(search.value.toLowerCase())).length) {
+          section.style.display = ''
+        } else {
+          section.style.display = 'none'
+        }
+
       const h2 = document.getElementById('h2.' + networkId) ?? document.createElement('h2')
       h2.innerHTML = null
       h2.id = 'h2.' + networkId
@@ -402,7 +411,9 @@ const updatePrice = async (contract) => {
 
           updateScreenerByContract(contractToUpdate)
 
-        } catch(e) { console.error(e) }
+        } catch(e) {
+          // console.error(e)
+        }
       }
     }
   }
@@ -462,7 +473,7 @@ const updateHistory = async (contract) => {
       updateScreenerByContract(contract)
       screenerUpdated = true
     } else {
-      console.error(contract.name + ' had a problem fetching history', contract, roundData)
+      // console.error(contract.name + ' had a problem fetching history', contract, roundData)
       continue
     }
   }
