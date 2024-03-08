@@ -233,7 +233,7 @@ const updateScreener = async () => {
       const divGraph = document.createElement('div')
       divGraph.classList.add('graph')
       divGraph.id = contract.networkId + '+' + contract.path + 'graph'
-      if(contract.history.length > 1) {
+      if(contract.history?.length > 1) {
         const plot = Plot.line(
           contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
           { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
