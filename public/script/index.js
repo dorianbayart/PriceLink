@@ -298,7 +298,6 @@ const drag = (ev) => {
 const allowDrop = (ev) => {
   ev.preventDefault()
   let target = ev.target
-  console.log(target)
   if(!target || !target.id || target.id === 'screener') return
   while(target.tagName !== "LI" || !target.id) {
     target = target.parentElement
@@ -319,7 +318,7 @@ const drop = (ev) => {
 
   if(dragDrop.from !== dragDrop.to) {
     if(dragDrop.to === -1 && ev.target.tagName === "IMG") {
-      delete screener[dragDrop.from]
+      screener.splice(dragDrop.from, 1)
     } else if (dragDrop.to > -1) {
       const item = screener[dragDrop.from]
       screener.splice(dragDrop.from, 1)
