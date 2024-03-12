@@ -436,7 +436,7 @@ const updateHistory = async (contract) => {
     contract.history = []
   }
 
-  const mostRecentHistoryRoundId = contract.history.length > 0 ? BigInt(contract.history[contract.history.length-1].roundId) : undefined
+  let mostRecentHistoryRoundId = contract.history.length > 0 ? BigInt(contract.history[contract.history.length-1].roundId) : undefined
 
   // Build a 24h simplified history = 86400 seconds
   let i = 0n
@@ -451,11 +451,12 @@ const updateHistory = async (contract) => {
         contract.history.push(roundData)
         const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
         if(index > -1) {
-          contract.history.slice(index)
+          contract.history = contract.history.slice(index)
         }
       } else {
         contract.history.unshift(roundData)
       }
+      mostRecentHistoryRoundId = contract.history.length > 0 ? BigInt(contract.history[contract.history.length-1].roundId) : undefined
 
       if(contract.heartbeat <= 3600) {
         i += contract.heartbeat <= 120 ? 240n : 12n
@@ -468,6 +469,11 @@ const updateHistory = async (contract) => {
       }
 
       contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
+      const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
+      if(index > -1) {
+        contract.history = contract.history.slice(index)
+      }
+
       contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
       contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
       updateScreenerByContract(contract)
@@ -479,6 +485,11 @@ const updateHistory = async (contract) => {
   }
 
   contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
+  const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
+  if(index > -1) {
+    contract.history = contract.history.slice(index)
+  }
+
   contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
   if(!screenerUpdated) updateScreenerByContract(contract)
 }
