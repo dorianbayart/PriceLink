@@ -176,7 +176,9 @@ const updateScreener = async () => {
 
   if(ul.getAttribute('listeners') !== 'true') {
     ul.addEventListener('dragover', allowDrop)
+    //ul.addEventListener('touchmove', allowDrop)
     ul.addEventListener('drop', drop)
+    //ul.addEventListener('touchend', drop)
     ul.setAttribute('listener', 'true')
   }
 
@@ -245,6 +247,7 @@ const updateScreener = async () => {
       li.draggable = true
       li.addEventListener('click', removeFromScreener)
       li.addEventListener('dragstart', drag)
+      //li.addEventListener('touchstart', drag)
 
       li.appendChild(divChainLogo)
       li.appendChild(divName)
@@ -292,14 +295,18 @@ const updateScreener = async () => {
 }
 
 const drag = (ev) => {
-  const movedItemPosition = screener.findIndex(item => item && 'screener' + item.networkId + '+' + item.path === ev.target.id)
-  ev.dataTransfer.effectAllowed = 'move'
+  let target = ev.target
+  while(target.tagName !== "LI" || !target.id) {
+    target = target.parentElement
+  }
+  const movedItemPosition = screener.findIndex(item => item && 'screener' + item.networkId + '+' + item.path === target.id)
+  if(ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move'
   dragDrop.from = movedItemPosition
   const trash = document.getElementById('trash')
   trash.style.display = 'flex'
   if(trash.getAttribute('listeners') !== 'true') {
     trash.addEventListener('dragover', dragOverTrash)
-    trash.addEventListener('drop', drop)
+    trash.addEventListener('drop', dropTrash)
     trash.setAttribute('listener', 'true')
   }
 }
@@ -312,27 +319,38 @@ const allowDrop = (ev) => {
     target = target.parentElement
   }
   const moveToPosition = screener.findIndex(item => item && 'screener' + item.networkId + '+' + item.path === target.id)
-  ev.dataTransfer.dropEffect = 'move'
+  if(ev.dataTransfer) ev.dataTransfer.dropEffect = 'move'
   dragDrop.to = moveToPosition
 }
 
 const dragOverTrash = (ev) => {
   ev.preventDefault()
-
   dragDrop.to = -1
 }
 
 const drop = (ev) => {
   ev.preventDefault()
-
   if(dragDrop.from !== dragDrop.to) {
-    if(dragDrop.to === -1 && ev.target.tagName === "IMG") {
+    if(dragDrop.to === -1 && ev.target?.tagName === "IMG") {
       screener.splice(dragDrop.from, 1)
     } else if (dragDrop.to > -1) {
       const item = screener[dragDrop.from]
       screener.splice(dragDrop.from, 1)
       screener.splice(dragDrop.to, 0, item)
     }
+    document.getElementById('screener').innerHTML = null
+    updateScreener()
+  }
+
+  dragDrop.from = -1
+  dragDrop.to = -1
+  document.getElementById('trash').style.display = 'none'
+}
+
+const dropTrash = (ev) => {
+  ev.preventDefault()
+  if(dragDrop.from !== dragDrop.to) {
+    screener.splice(dragDrop.from, 1)
     document.getElementById('screener').innerHTML = null
     updateScreener()
   }
