@@ -176,9 +176,7 @@ const updateScreener = async () => {
 
   if(ul.getAttribute('listeners') !== 'true') {
     ul.addEventListener('dragover', allowDrop)
-    //ul.addEventListener('touchmove', allowDrop)
     ul.addEventListener('drop', drop)
-    //ul.addEventListener('touchend', drop)
     ul.setAttribute('listener', 'true')
   }
 
@@ -247,7 +245,6 @@ const updateScreener = async () => {
       li.draggable = true
       li.addEventListener('click', removeFromScreener)
       li.addEventListener('dragstart', drag)
-      //li.addEventListener('touchstart', drag)
 
       li.appendChild(divChainLogo)
       li.appendChild(divName)
@@ -614,16 +611,17 @@ const searchContract = (id) => {
 
 const fetchPages = async () => {
   const list = await fetch(repoUrl + 'main/src/features/data/chains.ts')
-    .then((resp) => resp.text())
-    .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('// All')[0]) // keep useful data
-    .then((str) =>
-    ('{ data:' + str + '}')
+  .then((resp) => resp.text())
+  .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('// All')[0]) // keep useful data
+  .then((str) => {
+    return ('{ data:' + str + '}')
     .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
     .replaceAll('https": ', 'https:')
     .replace(/\,(?!\s*?[\{\[\"\'\w])/g, '')
-  )
+  })
   .then(JSON.parse)
   .then((json) => json.data)
+  .catch((reason) => console.error('fetchPages failed: ', reason))
 
   list.forEach(page => {
     const i = pages.findIndex(p => p.label === page.label)
@@ -646,7 +644,8 @@ const fetchContracts = async (url) => {
   .then((resp) => resp.text())
   .then(JSON.parse)
   .then((array) => array.sort((a, b) => a.name.localeCompare(b.name)))
-  return data
+  .catch((reason) => console.error('fetchContracts failed: ', reason))
+  return data || []
 }
 
 /* Utils - Round a price */
