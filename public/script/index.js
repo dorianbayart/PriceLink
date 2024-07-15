@@ -280,7 +280,7 @@ const updateScreener = async () => {
       if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
 
       let divGraph = document.getElementById(contract.networkId + '+' + contract.path + 'graph')
-      if(divGraph && contract.history.length > 1) {
+      if(divGraph && contract.history?.length > 1) {
         divGraph.innerHTML = null
         const plot = Plot.line(
           contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
