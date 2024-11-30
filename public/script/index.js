@@ -439,7 +439,7 @@ const updatePrice = async (contract) => {
 }
 
 const updateHistory = async (contract) => {
-  let screenerUpdated = false
+  let screenerUpdated = contract.history?.length > 5
 
   const num = BigInt(contract.roundId)
   const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
@@ -447,57 +447,29 @@ const updateHistory = async (contract) => {
   const aggregatorRoundId = num & num2
   const round = (phaseId << 64n) | (aggregatorRoundId)
 
-  if(contract.history === null || contract.history === undefined || typeof(contract.history) === 'boolean' || contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) === -1) {
-    contract.history = []
+  if(contract.history?.length > 2 && Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt) < (Number(contract.history[contract.history.length - 1].updatedAt)-Number(contract.history[contract.history.length - 2].updatedAt))/4) {
+    console.log('Historique trop récent, on saute', contract.assetName, Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt))
+    return
   }
 
-  let mostRecentHistoryRoundId = contract.history.length > 0 ? BigInt(contract.history[contract.history.length-1].roundId) : undefined
+  console.log('Historique trop vieux ou vide, on update !', contract.assetName, contract.history.length > 2 ? Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt) : '')
 
-  // Build a 24h simplified history = 86400 seconds
-  let i = 0n
-  while(
-    (contract.history.length === 0 || Number(contract.history[0].updatedAt) > Date.now()/1000 - 86400) && round > i
-    || (mostRecentHistoryRoundId && (mostRecentHistoryRoundId + i < BigInt(contract.roundId)))
-  ) {
-    const roundData = await getRoundDataWeb3(contract.proxyAddress, round - i, contract.networkId)
-    if(Number(roundData.answer) > 0) {
-      if(contract.history.length && roundData.updatedAt > contract.history[contract.history.length-1].updatedAt) {
+  contract.history = []
 
-        contract.history.push(roundData)
-        const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
-        if(index > -1) {
-          contract.history = contract.history.slice(index)
-        }
-      } else {
-        contract.history.unshift(roundData)
+  const benchRoundData = await getRoundDataWeb3(contract.proxyAddress, round - 100n, contract.networkId)
+  if(Number(benchRoundData.answer) > 0) {
+    const timePerRoundId = (contract.timestamp - Number(benchRoundData.updatedAt + '000'))/100
+    for (let i = 0; i < 86500000/timePerRoundId; i += Math.ceil(86400000/timePerRoundId/48)) {
+      const roundData = await getRoundDataWeb3(contract.proxyAddress, round - BigInt(i), contract.networkId)
+      contract.history.unshift(roundData)
+      if(!screenerUpdated)  {
+        contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
+        updateScreenerByContract(contract)
       }
-      mostRecentHistoryRoundId = contract.history.length > 0 ? BigInt(contract.history[contract.history.length-1].roundId) : undefined
-
-      if(contract.heartbeat <= 3600) {
-        i += contract.heartbeat <= 120 ? 240n : 12n
-      } else {
-        if(contract.history.length > 2 && Number(contract.history[contract.history.length-2].updatedAt) + 15 * 60 > Number(contract.history[contract.history.length-1].updatedAt)) {
-          i += 4n
-        } else {
-          i++
-        }
-      }
-
-      contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
-      const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
-      if(index > -1) {
-        contract.history = contract.history.slice(index)
-      }
-
-      contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
-      contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
-      updateScreenerByContract(contract)
-      screenerUpdated = true
-    } else {
-      // console.error(contract.name + ' had a problem fetching history', contract, roundData)
-      continue
     }
   }
+
+  contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
 
   contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
   const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
@@ -506,7 +478,7 @@ const updateHistory = async (contract) => {
   }
 
   contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
-  if(!screenerUpdated) updateScreenerByContract(contract)
+  updateScreenerByContract(contract)
 }
 
 const addToScreener = async (e) => {
@@ -644,7 +616,7 @@ const fetchContracts = async (url) => {
   .then((resp) => resp.text())
   .then(JSON.parse)
   .then((array) => array.sort((a, b) => a.name.localeCompare(b.name)))
-  .catch((reason) => console.error('fetchContracts failed: ', reason))
+  .catch((reason) => console.error(url, 'fetchContracts failed: ', reason))
   return data || []
 }
 
