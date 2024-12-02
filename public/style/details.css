@@ -29,6 +29,7 @@ section#details button#backFromDetails {
   border: none;
   background-color: #4a68ff88;
   cursor: pointer;
+  z-index: 1;
 }
 
 section#details button#backFromDetails:hover {
@@ -68,4 +69,5 @@ section#details #details-percentChange {
 section#details #details-graph {
   position: absolute;
   bottom: 0;
+  left: 0;
 }
