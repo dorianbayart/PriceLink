@@ -24,7 +24,7 @@ const NETWORK = {
     rpc: 'https://sepolia.base.org',
   },
   'bnb-chain.bnb-chain-mainnet': {
-    rpc: 'https://bsc.publicnode.com',
+    rpc: 'https://bsc-rpc.publicnode.com',
   },
   'bnb-chain.bnb-chain-testnet': {
     rpc: 'https://bsc-testnet.publicnode.com',
@@ -36,7 +36,7 @@ const NETWORK = {
     rpc: 'https://alfajores-forno.celo-testnet.org',
   },
   'ethereum.ethereum-mainnet': {
-    rpc: 'https://cloudflare-eth.com',
+    rpc: 'https://ethereum-rpc.publicnode.com',
   },
   'ethereum.goerli-testnet': {
     rpc: 'https://rpc.ankr.com/eth_goerli',
