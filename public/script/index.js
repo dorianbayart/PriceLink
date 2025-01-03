@@ -452,7 +452,7 @@ const updateHistory = async (contract) => {
     return
   }
 
-  console.log('Historique trop vieux ou vide, on update !', contract.assetName, contract.history.length > 2 ? Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt) : '')
+  console.log('Historique trop vieux ou vide, on update !', contract.assetName, contract.history?.length > 2 ? Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt) : '')
 
   contract.history = []
 
