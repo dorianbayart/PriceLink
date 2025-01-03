@@ -477,7 +477,7 @@ const updateHistory = async (contract) => {
     contract.history = contract.history.slice(index)
   }
 
-  if(contract.history?.length && contract.history[0]) {
+  if(contract.history?.length && contract.history[0]?.answer) {
     contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
   }
   updateScreenerByContract(contract)
