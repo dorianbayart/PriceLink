@@ -15,17 +15,12 @@ const repoUrl = 'https://raw.githubusercontent.com/dorianbayart/documentation/'
 const imgBaseUrl = repoUrl + 'main/public'
 
 let web3 = null
+const rpcIndexes = {}
 
 let searchInput = null, backFromDetails = null, detailsContract = null
 
 document.addEventListener('DOMContentLoaded', async () => {
   web3 = {}
-
-  Object.keys(NETWORK).forEach((network) => {
-    if (NETWORK[network].rpc.length > 0) {
-      web3[network] = new Web3(NETWORK[network].rpc)
-    }
-  })
 
   searchInput = document.getElementById('search')
   searchInput.addEventListener('input', updateMain)
@@ -238,7 +233,7 @@ const updateScreener = async () => {
 
       const divName = document.createElement('div')
       divName.classList.add('name')
-      divName.innerHTML = contract.assetName
+      divName.innerHTML = contract.assetName?.length ? contract.assetName : contract.name
 
       const divDate = document.createElement('div')
       divDate.classList.add('date')
@@ -497,7 +492,7 @@ const updateHistory = async (contract) => {
       .sort((a, b) => b - a)[0]
     
     if (Date.now()/1000 - latestHistoryTime < (latestHistoryTime - secondLatestTime)/4) {
-      console.log('History is recent enough, skipping update', contract.assetName)
+      console.log('History is recent enough, skipping update', contract.assetName?.length ? contract.assetName : contract.name)
       return
     }
   }
@@ -505,12 +500,12 @@ const updateHistory = async (contract) => {
   // If we have no history, we need to get benchmark data to estimate rounds per day
   if (initialHistoryLength === 0) {
     contract.history = []
-    console.log('No history, initializing with endpoints', contract.assetName)
+    console.log('No history, initializing with endpoints', contract.assetName?.length ? contract.assetName : contract.name)
     
     // Get benchmark point to calculate time per round
     const benchRoundData = await fetchHistoryPoint(contract, currentRound - 100n)
     if (!benchRoundData || Number(benchRoundData.answer) <= 0) {
-      console.log('Failed to get benchmark data, aborting', contract.assetName)
+      console.log('Failed to get benchmark data, aborting', contract.assetName?.length ? contract.assetName : contract.name)
       return
     }
     
@@ -750,7 +745,7 @@ const addToScreener = async (e) => {
 }
 
 const addToDetails = async (contract) => {
-  document.getElementById('details-assetName').innerHTML = contract.assetName
+  document.getElementById('details-assetName').innerHTML = contract.assetName?.length ? contract.assetName : contract.name
   document.getElementById('details-name').innerHTML = contract.name
   document.getElementById('details-feedType').innerHTML = contract.feedType
   const price = document.getElementById('details-price')
@@ -850,8 +845,6 @@ const fetchPages = async () => {
   .then((json) => json.data)
   .catch((reason) => console.error('fetchPages failed: ', reason))
 
-  console.log('Pages:', list)
-
   // Keep only mainnets
   list.forEach(page => {
     page.networks = page.networks.filter(({ networkType }) => networkType === 'mainnet')
@@ -861,14 +854,26 @@ const fetchPages = async () => {
     const chainInfos = CHAINS_TO_ID.find(chain => chain.chains[key])?.chains[key]
     if(!chainInfos) return
     
-    console.log(page.networks[0]?.queryString, chainInfos, CHAINS_TO_RPC.find(({ chainId }) => chainId === chainInfos?.chainId))
     const infos = CHAINS_TO_RPC.find(({ chainId }) => chainId === chainInfos?.chainId)
-    infos.rpc = infos.rpc.filter(rpc => rpc.startsWith('http') && !rpc.includes('API'))
+    infos.rpc = infos?.rpc?.filter(rpc => rpc.startsWith('http') && !rpc.includes('API'))
 
-    page = { ...page, ...infos }
+    Object.assign(page, infos)
   })
 
   pages = list
+
+  console.log('Pages:', pages)
+
+  // Initialize or update web3 with page.rpc URLs
+  pages.forEach(page => {
+    if(page.rpc && page.rpc.length > 0) {
+      page.networks.forEach(network => {
+        const networkId = page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-')
+        rpcIndexes[networkId] = 0
+        web3[networkId] = new Web3(page.rpc[0])
+      })
+    }
+  })
 
   await populateContracts()
 
@@ -882,6 +887,28 @@ const fetchContracts = async (url) => {
   .then((array) => array.sort((a, b) => a.name.localeCompare(b.name)))
   .catch((reason) => console.error(url, 'fetchContracts failed: ', reason))
   return data || []
+}
+
+
+// Swith RPC
+const switchToNextRPC = async (networkId) => {
+  const page = pages.find(page => page.networks.some(network => 
+    networkId === page.page + '.' + network.name.toLowerCase().replaceAll(' ', '-')
+  ))
+  
+  if(!page || !page.rpc || page.rpc.length <= 1) return false
+  
+  // Increment the RPC index, cycling back to 0 if we reach the end
+  rpcIndexes[networkId] = (rpcIndexes[networkId] + 1) % page.rpc.length
+  
+  try {
+    console.log(`Switching ${networkId} to RPC #${rpcIndexes[networkId]}: ${page.rpc[rpcIndexes[networkId]]}`)
+    web3[networkId] = new Web3(page.rpc[rpcIndexes[networkId]])
+    return true
+  } catch(e) {
+    console.error(`Failed to switch to RPC #${rpcIndexes[networkId]} for ${networkId}`, e)
+    return false
+  }
 }
 
 /* Utils - Round a price */
@@ -914,18 +941,58 @@ const getWeb3 = (network) => {
 
 // Get latest price
 const getLatestRoundWeb3 = async (adress, network) => {
-  const web3 = getWeb3(network)
-  if(!web3) return
-  let contract = new (web3.eth).Contract(ABI, adress)
-  return await contract.methods.latestRoundData().call(async (error, value) => {
-    return value
-  })
+  const maxAttempts = 3 // Try up to 3 different RPCs
+  let attempts = 0
+
+  while(attempts < maxAttempts) {
+    const web3Instance = getWeb3(network)
+    if(!web3Instance) return
+    
+    try {
+      let contract = new (web3Instance.eth).Contract(ABI, adress)
+      const result = await contract.methods.latestRoundData().call()
+      return result
+    } catch(error) {
+      attempts++
+      console.warn(`RPC failed for ${network}, attempt ${attempts}/${maxAttempts}`, error)
+      
+      // If we haven't reached max attempts, try switching to the next RPC
+      if(attempts < maxAttempts) {
+        const switched = await switchToNextRPC(network)
+        if(!switched) break // No more RPCs to try
+      }
+    }
+  }
+  
+  console.error(`All RPCs failed for ${network} after ${attempts} attempts`)
+  return null
 }
 
 // Get historical price
 const getRoundDataWeb3 = async (adress, roundId, network) => {
-  let contract = new (getWeb3(network).eth).Contract(ABI, adress)
-  return await contract.methods.getRoundData(roundId).call(async (error, value) => {
-    return value
-  })
+  const maxAttempts = 3 // Try up to 3 different RPCs
+  let attempts = 0
+  
+  while(attempts < maxAttempts) {
+    const web3Instance = getWeb3(network)
+    if(!web3Instance) return
+    
+    try {
+      let contract = new (web3Instance.eth).Contract(ABI, adress)
+      const result = await contract.methods.getRoundData(roundId).call()
+      return result
+    } catch(error) {
+      attempts++
+      console.warn(`RPC failed for ${network} with roundId ${roundId}, attempt ${attempts}/${maxAttempts}`, error)
+      
+      // If we haven't reached max attempts, try switching to the next RPC
+      if(attempts < maxAttempts) {
+        const switched = await switchToNextRPC(network)
+        if(!switched) break // No more RPCs to try
+      }
+    }
+  }
+  
+  console.error(`All RPCs failed for ${network} with roundId ${roundId} after ${attempts} attempts`)
+  return null
 }
