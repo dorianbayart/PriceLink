@@ -80,7 +80,7 @@ const initializeScreener = async () => {
     // Filter out contracts with invalid history data
     const validScreener = storedScreener.filter(contract => contract && (!contract.history || Array.isArray(contract.history)))
 
-    screener.push(...storedScreener)
+    screener.push(...validScreener)
     updateScreener()
 
     // Schedule initial history check for all contracts
@@ -472,10 +472,12 @@ const updatePrice = async (contract) => {
 }
 
 const updateHistory = async (contract) => {
+  // console.log(`updateHistory called for ${contract.assetName || 'unknown contract'}`)
   let screenerUpdated = contract.history?.length > 5
 
   // Store the initial length to check if we had history before
-  const initialHistoryLength = (contract.history ?? []).length
+  if (!contract.history) contract.history = []
+  const initialHistoryLength = contract.history.length
 
   const num = BigInt(contract.roundId)
   const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
@@ -664,12 +666,23 @@ const findGapsInHistory = (history, minTimeDiff = 3600) => {
 
 const fetchHistoryPoint = async (contract, roundId) => {
   try {
+    // console.log(`Fetching history for ${contract.assetName} at round ${roundId}`)
     const roundData = await getRoundDataWeb3(contract.proxyAddress, roundId, contract.networkId)
-    if (Number(roundData.answer) > 0) {
-      return roundData
+
+    if (!roundData) {
+      console.warn(`No data returned for ${contract.assetName} at round ${roundId}`)
+      return null
     }
+
+    if (Number(roundData.answer) <= 0) {
+      console.warn(`Invalid price (${roundData.answer}) for ${contract.assetName} at round ${roundId}`)
+      return null
+    }
+
+    // console.log(`Successfully fetched history point for ${contract.assetName}: round=${roundId}, price=${roundData.answer}, time=${new Date(Number(roundData.updatedAt + '000')).toISOString()}`)
+    return roundData
   } catch (e) {
-    console.log(`Failed to fetch point at roundId ${roundId}`, e)
+    console.log(`Error fetching history for ${contract.assetName} at round ${roundId}:`, e.message)
   }
   return null
 }
