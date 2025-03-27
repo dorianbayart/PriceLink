@@ -1,8 +1,11 @@
 'use strict'
 
+import { ABI, NETWORK, SCREENER_INITIALIZER, SYMBOLS } from 'constant'
 import * as Plot from 'plot'
 
-const pages = []
+let CHAINS_TO_ID = []
+let CHAINS_TO_RPC = []
+let pages = []
 const contracts = {}
 const dragDrop = { from: -1, to: -1 }
 
@@ -34,6 +37,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 })
 
 const initialize = async () => {
+  CHAINS_TO_ID = Object.values(
+    await fetch(repoUrl + 'main/src/config/data/chains.json')
+      .then((resp) => resp.text())
+      .then(JSON.parse)
+    )
+  console.log('CHAINS_TO_ID', CHAINS_TO_ID)
+
+  CHAINS_TO_RPC = await fetch('https://chainid.network/chains_mini.json')
+    .then((resp) => resp.text())
+    .then(JSON.parse)
+  console.log('CHAINS_TO_RPC', CHAINS_TO_RPC)
+
   const storedPages = JSON.parse(localStorage.getItem('pages'))
   if(storedPages) {
     pages.push(...storedPages)
@@ -835,16 +850,25 @@ const fetchPages = async () => {
   .then((json) => json.data)
   .catch((reason) => console.error('fetchPages failed: ', reason))
 
+  console.log('Pages:', list)
+
+  // Keep only mainnets
   list.forEach(page => {
-    const i = pages.findIndex(p => p.label === page.label)
-    if(i > -1) {
-      pages[i] = page
-    } else {
-      pages.push(page)
-    }
+    page.networks = page.networks.filter(({ networkType }) => networkType === 'mainnet')
+    if(!page.networks) return
+
+    const key = CHAINS_TO_ID.map(chain => Object.keys(chain.chains).find(key => key.toLocaleLowerCase().replace('_','-') === page.networks[0]?.queryString)).find(c => c)
+    const chainInfos = CHAINS_TO_ID.find(chain => chain.chains[key])?.chains[key]
+    if(!chainInfos) return
+    
+    console.log(page.networks[0]?.queryString, chainInfos, CHAINS_TO_RPC.find(({ chainId }) => chainId === chainInfos?.chainId))
+    const infos = CHAINS_TO_RPC.find(({ chainId }) => chainId === chainInfos?.chainId)
+    infos.rpc = infos.rpc.filter(rpc => rpc.startsWith('http') && !rpc.includes('API'))
+
+    page = { ...page, ...infos }
   })
 
-  //pages.push(...list)
+  pages = list
 
   await populateContracts()
 
