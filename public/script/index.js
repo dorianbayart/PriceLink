@@ -67,8 +67,27 @@ const initializeScreener = async () => {
   console.log('storedScreener', storedScreener)
 
   if(storedScreener) {
+    // Filter out contracts with invalid history data
+    const validScreener = storedScreener.filter(contract => contract && (!contract.history || Array.isArray(contract.history)))
+
     screener.push(...storedScreener)
     updateScreener()
+
+    // Schedule initial history check for all contracts
+    screener.forEach(contract => {
+      setTimeout(() => {
+        if (contract) {
+          const now = Date.now()/1000;
+          const needsUpdate = !contract.history || 
+                             contract.history.length === 0 || 
+                             !contract.history.some(point => now - Number(point.updatedAt) < 3600)
+          
+          if (needsUpdate) {
+            updateHistory(contract)
+          }
+        }
+      }, Math.random() * 1000 + 500) // Stagger initial update checks
+    })
   } else {
     for(const item of SCREENER_INITIALIZER) {
       await addToScreener(item)
@@ -421,6 +440,8 @@ const updatePrice = async (contract) => {
 
           if(!contractToUpdate.roundId || !latestRoundData.roundId || contractToUpdate.history.length === 0 || contractToUpdate.roundId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].roundId !== latestRoundData.roundId) {
             contractToUpdate.roundId = latestRoundData.roundId
+
+            if(Math.random() < 0.1) removeDuplicateHistoryPoints(contractToUpdate)
             updateHistory(contractToUpdate)
           }
 
@@ -433,55 +454,272 @@ const updatePrice = async (contract) => {
     }
   }
 
-  if(!contract) setTimeout(updatePrice, delay)
+  
 
   localStorage.setItem('screener', JSON.stringify(screener))
+
+  if(!contract) setTimeout(updatePrice, delay)
 }
 
 const updateHistory = async (contract) => {
   let screenerUpdated = contract.history?.length > 5
 
+  // Store the initial length to check if we had history before
+  const initialHistoryLength = (contract.history ?? []).length
+
   const num = BigInt(contract.roundId)
   const num2 = BigInt("0xFFFFFFFFFFFFFFFF")
   const phaseId = num >> 64n
   const aggregatorRoundId = num & num2
-  const round = (phaseId << 64n) | (aggregatorRoundId)
+  const currentRound = (phaseId << 64n) | (aggregatorRoundId)
 
-  if(contract.history?.length > 2 && Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt) < (Number(contract.history[contract.history.length - 1].updatedAt)-Number(contract.history[contract.history.length - 2].updatedAt))/4) {
-    console.log('Historique trop récent, on saute', contract.assetName, Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt))
-    return
-  }
-
-  console.log('Historique trop vieux ou vide, on update !', contract.assetName, contract.history?.length > 2 ? Date.now()/1000 - Number(contract.history[contract.history.length - 1].updatedAt) : '')
-
-  contract.history = []
-
-  const benchRoundData = await getRoundDataWeb3(contract.proxyAddress, round - 100n, contract.networkId)
-  if(Number(benchRoundData.answer) > 0) {
-    const timePerRoundId = (contract.timestamp - Number(benchRoundData.updatedAt + '000'))/100
-    for (let i = 0; i < 86500000/timePerRoundId; i += Math.ceil(86400000/timePerRoundId/48)) {
-      const roundData = await getRoundDataWeb3(contract.proxyAddress, round - BigInt(i), contract.networkId)
-      contract.history.unshift(roundData)
-      if(!screenerUpdated)  {
-        contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
-        updateScreenerByContract(contract)
-      }
+  // Skip if history is very recent
+  if (initialHistoryLength > 2) {
+    const latestHistoryTime = Math.max(...contract.history.map(p => Number(p.updatedAt)))
+    const secondLatestTime = contract.history
+      .map(p => Number(p.updatedAt))
+      .filter(t => t !== latestHistoryTime)
+      .sort((a, b) => b - a)[0]
+    
+    if (Date.now()/1000 - latestHistoryTime < (latestHistoryTime - secondLatestTime)/4) {
+      console.log('History is recent enough, skipping update', contract.assetName)
+      return
     }
   }
 
-  contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
-
-  contract.history.sort((a,b) => a.updatedAt.localeCompare(b.updatedAt))
-  const index = contract.history.findIndex(p => Number(p.updatedAt)+86400 > Date.now()/1000) - 1
-  if(index > -1) {
-    contract.history = contract.history.slice(index)
+  // If we have no history, we need to get benchmark data to estimate rounds per day
+  if (initialHistoryLength === 0) {
+    contract.history = []
+    console.log('No history, initializing with endpoints', contract.assetName)
+    
+    // Get benchmark point to calculate time per round
+    const benchRoundData = await fetchHistoryPoint(contract, currentRound - 100n)
+    if (!benchRoundData || Number(benchRoundData.answer) <= 0) {
+      console.log('Failed to get benchmark data, aborting', contract.assetName)
+      return
+    }
+    
+    // Calculate approximate rounds per day
+    const timePerRound = (contract.timestamp - Number(benchRoundData.updatedAt + '000'))/100
+    const roundsPerDay = Math.ceil(86400000 / timePerRound)
+    
+    // Target round from 24h ago
+    const dayOldTargetRound = currentRound - BigInt(roundsPerDay)
+    
+    // Fetch endpoints first: now and 24h ago
+    const currentData = await fetchHistoryPoint(contract, currentRound)
+    const dayOldData = await fetchHistoryPoint(contract, dayOldTargetRound)
+    
+    if (currentData) contract.history.push(currentData)
+    if (dayOldData) contract.history.push(dayOldData)
+    
+    // Sort
+    if (contract.history.length > 0) {
+      contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
+      
+      // Store the roundsPerDay for future reference
+      contract.roundsPerDay = roundsPerDay
+    }
   }
-
-  if(contract.history?.length && contract.history[0]?.answer) {
-    contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer))/Number(contract.history[0].answer)*100
+  
+  // Check for gaps in history
+  const gaps = findGapsInHistory(contract.history)
+  
+  // Start a background process to fill gaps using dichotomy
+  setTimeout(() => {
+    fillHistoryGaps(contract, gaps)
+  }, 400)
+  
+  // Calculate statistics from what we have
+  if (contract.history.length > 0) {
+    contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+    
+    // Sort by timestamp
+    contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
+    
+    // Filter to keep only 24h data
+    const oneDayAgo = Date.now()/1000 - 86400
+    const index = contract.history.findIndex(p => Number(p.updatedAt) > oneDayAgo) - 1
+    if (index > 0) {
+      contract.history = contract.history.slice(index)
+    }
+    
+    // Calculate 24h percentage change if we have enough data
+    if (contract.history[0]?.answer) {
+      contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer)) / Number(contract.history[0].answer) * 100
+    }
+    
+    // Update UI with what we have so far
+    updateScreenerByContract(contract)
   }
-  updateScreenerByContract(contract)
 }
+
+
+
+
+
+
+
+
+
+
+
+const fillHistoryGaps = async (contract, gaps) => {
+  // Stop conditions
+  if (!gaps || gaps.length === 0) return
+  
+  // Process the largest gap first
+  gaps.sort((a, b) => b.timeDiff - a.timeDiff)
+  const largestGap = gaps[0]
+
+  // Process gaps larger than 10 minutes (600 seconds)
+  if(largestGap.timeDiff < 600) return
+  
+  // Calculate the middle point's roundId
+  const midRoundId = largestGap.startRoundId + ((largestGap.endRoundId - largestGap.startRoundId) / 2n)
+  
+  // Cannot find inbetween point, stop the dichotomy
+  if(midRoundId === largestGap.startRoundId || midRoundId === largestGap.endRoundId) return
+
+  // Fetch the middle point
+  const midPointData = await fetchHistoryPoint(contract, midRoundId)
+  
+  if (midPointData && Number(midPointData.answer) > 0) {
+    // Add the new midpoint to history
+    const isDuplicate = contract.history.some(point => point.roundId === midPointData.roundId)
+    if (!isDuplicate) {
+      contract.history.push(midPointData)
+      
+      // Sort by timestamp
+      contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
+      
+      // Calculate new statistics
+      contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+
+      const oldestPoint = contract.history[0]
+      if (oldestPoint?.answer) {
+        contract.percentChange24h = (Number(contract.price) - Number(oldestPoint.answer)) / Number(oldestPoint.answer) * 100
+      }
+
+      // Update UI immediately
+      updateScreenerByContract(contract)
+    }
+    
+    // Find new gaps after adding this point
+    const newGaps = findGapsInHistory(contract.history)
+    
+    // Continue filling gaps asynchronously
+    setTimeout(() => {
+      fillHistoryGaps(contract, newGaps)
+    }, 400)
+  } else {
+    // If middle point fetch failed, remove this gap and try others
+    const remainingGaps = gaps.slice(1)
+    
+    // Continue with other gaps
+    setTimeout(() => {
+      fillHistoryGaps(contract, remainingGaps)
+    }, 400)
+  }
+}
+
+const findGapsInHistory = (history, minTimeDiff = 3600) => {
+  if(!history) return []
+
+  // Sort history by timestamp to ensure proper gap detection
+  const sortedHistory = [...history].sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
+  const gaps = []
+  
+  for (let i = 0; i < sortedHistory.length - 1; i++) {
+    const currentTime = Number(sortedHistory[i].updatedAt)
+    const nextTime = Number(sortedHistory[i + 1].updatedAt)
+    const timeDiff = nextTime - currentTime
+    
+    // If time gap is significant, add to gaps list
+    if (timeDiff > minTimeDiff) {
+      gaps.push({
+        startIndex: i,
+        endIndex: i + 1,
+        startTime: currentTime,
+        endTime: nextTime,
+        startRoundId: BigInt(sortedHistory[i].roundId),
+        endRoundId: BigInt(sortedHistory[i + 1].roundId),
+        timeDiff
+      })
+    }
+  }
+  
+  return gaps
+}
+
+const fetchHistoryPoint = async (contract, roundId) => {
+  try {
+    const roundData = await getRoundDataWeb3(contract.proxyAddress, roundId, contract.networkId)
+    if (Number(roundData.answer) > 0) {
+      return roundData
+    }
+  } catch (e) {
+    console.log(`Failed to fetch point at roundId ${roundId}`, e)
+  }
+  return null
+}
+
+
+// Add a function to check if history needs repair
+const repairHistoryIfNeeded = (contract) => {
+  if (!contract || !contract.history) return false
+  
+  // Check for invalid data points
+  const validHistory = contract.history.filter(point => 
+    point && point.answer && Number(point.answer) > 0 && 
+    point.updatedAt && Number(point.updatedAt) > 0
+  )
+  
+  // If we lost data, update the history
+  if (validHistory.length < contract.history.length) {
+    contract.history = validHistory
+    return true
+  }
+  
+  return false
+}
+
+// Add this at the end of updateHistory to ensure no duplicates
+const removeDuplicateHistoryPoints = (contract) => {
+  if (!contract || !contract.history) return
+  
+  // Get unique roundIds
+  const uniqueRoundIds = new Set()
+  const uniqueHistory = []
+  
+  for (const point of contract.history) {
+    if (!uniqueRoundIds.has(point.roundId)) {
+      uniqueRoundIds.add(point.roundId)
+      uniqueHistory.push(point)
+    }
+  }
+  
+  if (uniqueHistory.length < contract.history.length) {
+    contract.history = uniqueHistory
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const addToScreener = async (e) => {
   if (!e.target?.id && e.target?.parentElement) e = e.target.parentElement
