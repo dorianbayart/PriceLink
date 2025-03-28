@@ -9,6 +9,8 @@ let pages = []
 const contracts = {}
 const dragDrop = { from: -1, to: -1 }
 
+const GAP_TIME = 600 // 10 minutes
+
 const screener = []
 
 const repoUrl = 'https://raw.githubusercontent.com/dorianbayart/documentation/'
@@ -87,10 +89,10 @@ const initializeScreener = async () => {
     screener.forEach(contract => {
       setTimeout(() => {
         if (contract) {
-          const now = Date.now()/1000;
+          const now = Date.now()/1000; // seconds
           const needsUpdate = !contract.history || 
                              contract.history.length === 0 || 
-                             !contract.history.some(point => now - Number(point.updatedAt) < 3600)
+                             !contract.history.some(point => now - Number(point.updatedAt) < 300)
           
           if (needsUpdate) {
             updateHistory(contract)
@@ -265,7 +267,7 @@ const updateScreener = async () => {
       if(contract.history?.length > 1) {
         const plot = Plot.line(
           contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
-          { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
+          { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
         divGraph.append(plot)
       }
 
@@ -313,7 +315,7 @@ const updateScreener = async () => {
         divGraph.innerHTML = null
         const plot = Plot.line(
           contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
-          { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
+          { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
         divGraph.append(plot)
       }
     }
@@ -419,7 +421,7 @@ const updateScreenerByContract = async (contract) => {
     divGraph.innerHTML = null
     const plot = Plot.line(
       contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
-      { stroke: "ghostwhite" }).plot({ height: 48, width: 48, axis: null });
+      { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
     divGraph.append(plot)
   }
 
@@ -431,7 +433,7 @@ const updateScreenerByContract = async (contract) => {
 const updatePrice = async (contract) => {
   let delay = 2500
   if(screener.length > 0) {
-    const maxDelay = Math.floor(Math.log2(screener.length+1) * 5000 + 10000)
+    const maxDelay = Math.floor(Math.log2(screener.length+1) * 5000 + 5000)
     const contractsToUpdate = screener.filter((contract) => contract && (!contract.updatedAt || Date.now() - contract.updatedAt > maxDelay))
     const contractToUpdate = (contract ?? contractsToUpdate[Math.floor(Math.random() * contractsToUpdate.length)])
 
@@ -493,11 +495,12 @@ const updateHistory = async (contract) => {
       .filter(t => t !== latestHistoryTime)
       .sort((a, b) => b - a)[0]
     
-    if (Date.now()/1000 - latestHistoryTime < (latestHistoryTime - secondLatestTime)/4) {
+    if (Date.now()/1000 - latestHistoryTime < Math.max((latestHistoryTime - secondLatestTime), GAP_TIME)) {
       console.log('History is recent enough, skipping update', contract.assetName?.length ? contract.assetName : contract.name)
       return
     }
   }
+  
 
   // If we have no history, we need to get benchmark data to estimate rounds per day
   if (initialHistoryLength === 0) {
@@ -533,6 +536,8 @@ const updateHistory = async (contract) => {
       contract.roundsPerDay = roundsPerDay
     }
   }
+
+  console.log('Going to find points and build history ... ', contract.assetName?.length ? contract.assetName : contract.name)
   
   // Check for gaps in history
   const gaps = findGapsInHistory(contract.history)
@@ -584,8 +589,8 @@ const fillHistoryGaps = async (contract, gaps) => {
   gaps.sort((a, b) => b.timeDiff - a.timeDiff)
   const largestGap = gaps[0]
 
-  // Process gaps larger than 10 minutes (600 seconds)
-  if(largestGap.timeDiff < 600) return
+  // Process gaps larger than GAP_TIME
+  if(largestGap.timeDiff < GAP_TIME) return
   
   // Calculate the middle point's roundId
   const midRoundId = largestGap.startRoundId + ((largestGap.endRoundId - largestGap.startRoundId) / 2n)
@@ -635,7 +640,7 @@ const fillHistoryGaps = async (contract, gaps) => {
   }
 }
 
-const findGapsInHistory = (history, minTimeDiff = 3600) => {
+const findGapsInHistory = (history, minTimeDiff = GAP_TIME) => {
   if(!history) return []
 
   // Sort history by timestamp to ensure proper gap detection
@@ -648,7 +653,7 @@ const findGapsInHistory = (history, minTimeDiff = 3600) => {
     const timeDiff = nextTime - currentTime
     
     // If time gap is significant, add to gaps list
-    if (timeDiff > minTimeDiff) {
+    if (timeDiff > minTimeDiff / 2) {
       gaps.push({
         startIndex: i,
         endIndex: i + 1,
@@ -787,7 +792,7 @@ const addToDetails = async (contract) => {
     divGraph.innerHTML = null
     const plot = Plot.line(
       contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
-      { stroke: "ghostwhite" }).plot({ height: window.innerHeight - 80, width: window.innerWidth, axis: null });
+      { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: window.innerHeight - 80, width: window.innerWidth, axis: null });
     divGraph.append(plot)
   }
 }
@@ -912,10 +917,11 @@ const switchToNextRPC = async (networkId) => {
   if(!page || !page.rpc || page.rpc.length <= 1) return false
   
   // Increment the RPC index, cycling back to 0 if we reach the end
+  const currentRPC = page.rpc[rpcIndexes[networkId]]
   rpcIndexes[networkId] = (rpcIndexes[networkId] + 1) % page.rpc.length
   
   try {
-    console.log(`Switching ${networkId} to RPC #${rpcIndexes[networkId]}: ${page.rpc[rpcIndexes[networkId]]}`)
+    console.log(`RPC ${currentRPC} failure, Switching ${networkId} to #${rpcIndexes[networkId]}: ${page.rpc[rpcIndexes[networkId]]}`)
     web3[networkId] = new Web3(page.rpc[rpcIndexes[networkId]])
     return true
   } catch(e) {
@@ -967,7 +973,7 @@ const getLatestRoundWeb3 = async (adress, network) => {
       return result
     } catch(error) {
       attempts++
-      console.warn(`RPC failed for ${network}, attempt ${attempts}/${maxAttempts}`, error)
+      // console.warn(`RPC failed for ${network}, attempt ${attempts}/${maxAttempts}`, error)
       
       // If we haven't reached max attempts, try switching to the next RPC
       if(attempts < maxAttempts) {
@@ -996,7 +1002,7 @@ const getRoundDataWeb3 = async (adress, roundId, network) => {
       return result
     } catch(error) {
       attempts++
-      console.warn(`RPC failed for ${network} with roundId ${roundId}, attempt ${attempts}/${maxAttempts}`, error)
+      // console.warn(`RPC failed for ${network} with roundId ${roundId}, attempt ${attempts}/${maxAttempts}`, error)
       
       // If we haven't reached max attempts, try switching to the next RPC
       if(attempts < maxAttempts) {
