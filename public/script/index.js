@@ -535,6 +535,22 @@ const updateHistory = async (contract) => {
       // Store the roundsPerDay for future reference
       contract.roundsPerDay = roundsPerDay
     }
+  } else {
+    const currentData = {
+      roundId: contract.roundId,
+      answer: contract.price,
+      startedAt: Math.floor(contract.timestamp / 1000).toString(),
+      updatedAt: Math.floor(contract.timestamp / 1000).toString(),
+      answeredInRound: contract.roundId
+    }
+
+    const lastPoint = contract.history.length > 0 ? contract.history[contract.history.length - 1] : null
+
+    if ((!lastPoint || lastPoint.roundId !== currentData.roundId) && (!lastPoint || (Number(currentData.updatedAt) - Number(lastPoint.updatedAt)) > GAP_TIME)) {
+      // Add the current point to the history if it is not the same as the last one or if there is a gap of more than GAP_TIME seconds between them 
+      contract.history.push(currentData)
+      contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
+    }
   }
 
   console.log('Going to find points and build history ... ', contract.assetName?.length ? contract.assetName : contract.name)
