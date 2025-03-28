@@ -9,7 +9,7 @@ let pages = []
 const contracts = {}
 const dragDrop = { from: -1, to: -1 }
 
-const GAP_TIME = 600 // 10 minutes
+const GAP_TIME = 600 // 10 minutes gap for history
 
 const screener = []
 
@@ -486,20 +486,6 @@ const updateHistory = async (contract) => {
   const phaseId = num >> 64n
   const aggregatorRoundId = num & num2
   const currentRound = (phaseId << 64n) | (aggregatorRoundId)
-
-  // Skip if history is very recent
-  if (initialHistoryLength > 2) {
-    const latestHistoryTime = Math.max(...contract.history.map(p => Number(p.updatedAt)))
-    const secondLatestTime = contract.history
-      .map(p => Number(p.updatedAt))
-      .filter(t => t !== latestHistoryTime)
-      .sort((a, b) => b - a)[0]
-    
-    if (Date.now()/1000 - latestHistoryTime < Math.max((latestHistoryTime - secondLatestTime), GAP_TIME)) {
-      console.log('History is recent enough, skipping update', contract.assetName?.length ? contract.assetName : contract.name)
-      return
-    }
-  }
   
 
   // If we have no history, we need to get benchmark data to estimate rounds per day
@@ -536,6 +522,7 @@ const updateHistory = async (contract) => {
       contract.roundsPerDay = roundsPerDay
     }
   } else {
+    // Try to add current point at the end of history
     const currentData = {
       roundId: contract.roundId,
       answer: contract.price,
@@ -552,8 +539,6 @@ const updateHistory = async (contract) => {
       contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
     }
   }
-
-  console.log('Going to find points and build history ... ', contract.assetName?.length ? contract.assetName : contract.name)
   
   // Check for gaps in history
   const gaps = findGapsInHistory(contract.history)
@@ -669,7 +654,7 @@ const findGapsInHistory = (history, minTimeDiff = GAP_TIME) => {
     const timeDiff = nextTime - currentTime
     
     // If time gap is significant, add to gaps list
-    if (timeDiff > minTimeDiff / 2) {
+    if (timeDiff > minTimeDiff) {
       gaps.push({
         startIndex: i,
         endIndex: i + 1,
