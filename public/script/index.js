@@ -9,7 +9,15 @@ let pages = []
 const contracts = {}
 const dragDrop = { from: -1, to: -1 }
 
-const GAP_TIME = 600 // 10 minutes gap for history
+const GAP_TIME = 1600 // every 26 minutes gap for 1 day history
+const DURATIONS = {
+  '24h': { milliseconds: 86400000, label: '24h', roundsMultiplier: 1 },
+  '7d': { milliseconds: 86400000 * 7, label: '7d', roundsMultiplier: 7 },
+  '1m': { milliseconds: 86400000 * 30, label: '1m', roundsMultiplier: 30 },
+  '6m': { milliseconds: 86400000 * 180, label: '6m', roundsMultiplier: 180 },
+  '1y': { milliseconds: 86400000 * 365, label: '1y', roundsMultiplier: 365 }
+};
+let selectedDuration = '7d';
 
 const screener = []
 
@@ -34,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 })
 
 const initialize = async () => {
+  selectedDuration = localStorage.getItem('duration') || selectedDuration
+  console.log('Duration', selectedDuration)
+
   CHAINS_TO_ID = Object.values(
     await fetch(repoUrl + 'main/src/config/data/chains.json')
       .then((resp) => resp.text())
@@ -67,11 +78,43 @@ const initialize = async () => {
     await fetchPages()
   }
 
+  initializeDurationSelector()
 
   initializeScreener()
   updateMain()
 
   setTimeout(updatePrice, 2000)
+}
+
+const initializeDurationSelector = async () => {
+  const buttons = document.querySelectorAll('#history-duration-selector button')
+  buttons.forEach(button => {
+    button.classList.remove('active')
+    if(button.getAttribute('data-duration') === selectedDuration) button.classList.add('active')
+
+    button.addEventListener('click', () => {
+      buttons.forEach(btn => btn.classList.remove('active'))
+      button.classList.add('active')
+      
+      selectedDuration = button.getAttribute('data-duration')
+
+      localStorage.setItem('duration', selectedDuration)
+
+      if (screener.length) {
+        screener.forEach((contract) => updateHistory(contract, true))
+      }
+      
+      // if (detailsContract) {
+      //   const contract = screener.find(
+      //     c => c && detailsContract === c.networkId + '+' + c.path
+      //   )
+      //   if (contract) {
+      //     updateHistory(contract, true)
+      //     addToDetails(contract)
+      //   }
+      // }
+    })
+  })
 }
 
 const initializeScreener = async () => {
@@ -264,9 +307,9 @@ const updateScreener = async () => {
       const divGraph = document.createElement('div')
       divGraph.classList.add('graph')
       divGraph.id = contract.networkId + '+' + contract.path + 'graph'
-      if(contract.history?.length > 1) {
+      if(contract.filteredHistory?.length > 1) {
         const plot = Plot.line(
-          contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+          contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
           { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
         divGraph.append(plot)
       }
@@ -311,10 +354,10 @@ const updateScreener = async () => {
       if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
 
       let divGraph = document.getElementById(contract.networkId + '+' + contract.path + 'graph')
-      if(divGraph && contract.history?.length > 1) {
+      if(divGraph && contract.filteredHistory?.length > 1) {
         divGraph.innerHTML = null
         const plot = Plot.line(
-          contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+          contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
           { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
         divGraph.append(plot)
       }
@@ -417,10 +460,10 @@ const updateScreenerByContract = async (contract) => {
   if(date) date.innerHTML = contract.timestamp ? (new Date(contract.timestamp)).toLocaleString() : ''
 
   let divGraph = document.getElementById(contract.networkId + '+' + contract.path + 'graph')
-  if(divGraph && contract.history?.length > 1) {
+  if(divGraph && contract.filteredHistory?.length > 1) {
     divGraph.innerHTML = null
     const plot = Plot.line(
-      contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+      contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
       { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
     divGraph.append(plot)
   }
@@ -467,13 +510,17 @@ const updatePrice = async (contract) => {
   }
 
   
-
-  localStorage.setItem('screener', JSON.stringify(screener))
+  try {
+    localStorage.setItem('screener', JSON.stringify(screener))
+  } catch(_) {
+    console.error(`Error while storing data in cache: ${JSON.stringify(screener).length * 8 / 1000000} MB`)
+  }
+  
 
   if(!contract) setTimeout(updatePrice, delay)
 }
 
-const updateHistory = async (contract) => {
+const updateHistory = async (contract, forceUpdate = false) => {
   // console.log(`updateHistory called for ${contract.assetName || 'unknown contract'}`)
   let screenerUpdated = contract.history?.length > 5
 
@@ -489,9 +536,9 @@ const updateHistory = async (contract) => {
   
 
   // If we have no history, we need to get benchmark data to estimate rounds per day
-  if (initialHistoryLength === 0) {
-    contract.history = []
-    console.log('No history, initializing with endpoints', contract.assetName?.length ? contract.assetName : contract.name)
+  if (initialHistoryLength === 0 || forceUpdate) {
+    contract.history = contract.history || []
+    // console.log('No history, initializing with endpoints', contract.assetName?.length ? contract.assetName : contract.name)
     
     // Get benchmark point to calculate time per round
     const benchRoundData = await fetchHistoryPoint(contract, currentRound - 100n)
@@ -504,15 +551,15 @@ const updateHistory = async (contract) => {
     const timePerRound = (contract.timestamp - Number(benchRoundData.updatedAt + '000'))/100
     const roundsPerDay = Math.ceil(86400000 / timePerRound)
     
-    // Target round from 24h ago
-    const dayOldTargetRound = currentRound - BigInt(roundsPerDay)
+    // Target oldest round we need depending on selected duration
+    const oldestTargetRound = currentRound - BigInt(roundsPerDay * DURATIONS[selectedDuration].roundsMultiplier)
     
     // Fetch endpoints first: now and 24h ago
     const currentData = await fetchHistoryPoint(contract, currentRound)
-    const dayOldData = await fetchHistoryPoint(contract, dayOldTargetRound)
+    const oldestData = await fetchHistoryPoint(contract, oldestTargetRound)
     
     if (currentData) contract.history.push(currentData)
-    if (dayOldData) contract.history.push(dayOldData)
+    if (oldestData) contract.history.push(oldestData)
     
     // Sort
     if (contract.history.length > 0) {
@@ -540,8 +587,11 @@ const updateHistory = async (contract) => {
     }
   }
   
+  const selectedTime = Date.now()/1000 - (DURATIONS[selectedDuration].milliseconds / 1000)
+  const filteredHistory = contract.history.filter(p => Number(p.updatedAt) > selectedTime)
+  
   // Check for gaps in history
-  const gaps = findGapsInHistory(contract.history)
+  const gaps = findGapsInHistory(filteredHistory)
   
   // Start a background process to fill gaps using dichotomy
   setTimeout(() => {
@@ -550,26 +600,44 @@ const updateHistory = async (contract) => {
   
   // Calculate statistics from what we have
   if (contract.history.length > 0) {
-    contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
-    
     // Sort by timestamp
     contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
-    
-    // Filter to keep only 24h data
-    const oneDayAgo = Date.now()/1000 - 86400
-    const index = contract.history.findIndex(p => Number(p.updatedAt) > oneDayAgo) - 1
-    if (index > 0) {
-      contract.history = contract.history.slice(index)
+
+    // Keep full history
+    // if (!contract.fullHistory || forceUpdate) {
+    //   contract.fullHistory = [...contract.history]
+    // }
+
+    const selectedTime = Date.now()/1000 - (DURATIONS[selectedDuration].milliseconds / 1000)
+    const filteredHistory = contract.history.filter(p => Number(p.updatedAt) > selectedTime)
+    if (filteredHistory.length > 0) {
+      contract.filteredHistory = filteredHistory
+
+      // Update average price
+      contract.averagePrice = contract.filteredHistory.reduce((acc, val) => acc + Number(val.answer), 0) / contract.filteredHistory.length
+      
+      // Calculer le changement de pourcentage pour la période sélectionnée
+      if (filteredHistory[0]?.answer) {
+        contract.percentChange24h = (Number(contract.price) - Number(filteredHistory[0].answer)) / Number(filteredHistory[0].answer) * 100
+      }
     }
     
-    // Calculate 24h percentage change if we have enough data
-    if (contract.history[0]?.answer) {
-      contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer)) / Number(contract.history[0].answer) * 100
-    }
+    // // Filter to keep only 24h data
+    // const oneDayAgo = Date.now()/1000 - 86400
+    // const index = contract.history.findIndex(p => Number(p.updatedAt) > oneDayAgo) - 1
+    // if (index > 0) {
+    //   contract.history = contract.history.slice(index)
+    // }
     
-    // Update UI with what we have so far
-    updateScreenerByContract(contract)
+    // // Calculate 24h percentage change if we have enough data
+    // if (contract.history[0]?.answer) {
+    //   contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer)) / Number(contract.history[0].answer) * 100
+    // }
+    
   }
+
+  // Update UI with what we have so far
+  updateScreenerByContract(contract)
 }
 
 
@@ -590,8 +658,15 @@ const fillHistoryGaps = async (contract, gaps) => {
   gaps.sort((a, b) => b.timeDiff - a.timeDiff)
   const largestGap = gaps[0]
 
-  // Process gaps larger than GAP_TIME
-  if(largestGap.timeDiff < GAP_TIME) return
+  // Calculate minGapSize depending on selected duration
+  //const durationMultiplier = DURATIONS[selectedDuration].roundsMultiplier >= 30 ? 5 : DURATIONS[selectedDuration].roundsMultiplier >= 7 ? 3 : 1
+  const minGapSize = GAP_TIME * DURATIONS[selectedDuration].roundsMultiplier
+
+  // Process gaps larger than minGapSize
+  if(largestGap.timeDiff < minGapSize) return
+
+  if(contract.ens === 'link-usd')
+  console.log('updateHistory', contract, gaps, largestGap.timeDiff, largestGap.timeDiff/60)
   
   // Calculate the middle point's roundId
   const midRoundId = largestGap.startRoundId + ((largestGap.endRoundId - largestGap.startRoundId) / 2n)
@@ -610,21 +685,27 @@ const fillHistoryGaps = async (contract, gaps) => {
       
       // Sort by timestamp
       contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
+
+      const selectedTime = Date.now()/1000 - (DURATIONS[selectedDuration].milliseconds / 1000)
+      const filteredHistory = contract.history.filter(p => Number(p.updatedAt) > selectedTime)
+      contract.filteredHistory = filteredHistory
       
       // Calculate new statistics
-      contract.averagePrice = contract.history.reduce((acc, val) => acc + Number(val.answer), 0) / contract.history.length
+      contract.averagePrice = filteredHistory.reduce((acc, val) => acc + Number(val.answer), 0) / filteredHistory.length
 
-      const oldestPoint = contract.history[0]
+      const oldestPoint = filteredHistory[0]
       if (oldestPoint?.answer) {
         contract.percentChange24h = (Number(contract.price) - Number(oldestPoint.answer)) / Number(oldestPoint.answer) * 100
       }
 
-      // Update UI immediately
-      updateScreenerByContract(contract)
+      
     }
+
+    // Update UI immediately
+    updateScreenerByContract(contract)
     
     // Find new gaps after adding this point
-    const newGaps = findGapsInHistory(contract.history)
+    const newGaps = findGapsInHistory(contract.filteredHistory)
     
     // Continue filling gaps asynchronously
     setTimeout(() => {
@@ -641,7 +722,7 @@ const fillHistoryGaps = async (contract, gaps) => {
   }
 }
 
-const findGapsInHistory = (history, minTimeDiff = GAP_TIME) => {
+const findGapsInHistory = (history, minTimeDiff = GAP_TIME * DURATIONS[selectedDuration].roundsMultiplier) => {
   if(!history) return []
 
   // Sort history by timestamp to ensure proper gap detection
@@ -770,7 +851,7 @@ const addToDetails = async (contract) => {
   const price = document.getElementById('details-price')
   price.innerHTML = contract.price ? contract.valuePrefix + roundPrice(contract.price * Math.pow(10, -contract.decimals)) : ''
   const percent = document.getElementById('details-percentChange')
-  percent.innerHTML = contract.percentChange24h ? (contract.percentChange24h > 0 ? '+' : '') + roundPercentage(contract.percentChange24h)+'%' : ''
+  percent.innerHTML = contract.percentChange24h ? (contract.percentChange24h > 0 ? '+' : '') + roundPercentage(contract.percentChange24h)+'% (' + DURATIONS[selectedDuration].label + ')' : ''
 
   if (contract.price > contract.averagePrice) {
     price.classList.toggle('down', false)
@@ -789,10 +870,10 @@ const addToDetails = async (contract) => {
   }
 
   let divGraph = document.getElementById('details-graph')
-  if(divGraph && contract.history.length > 1) {
+  if(divGraph && contract.filteredHistory.length > 1) {
     divGraph.innerHTML = null
     const plot = Plot.line(
-      contract.history.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }).filter(point => point[0].getTime() > Date.now() - 86400000),
+      contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
       { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: window.innerHeight - 80, width: window.innerWidth, axis: null });
     divGraph.append(plot)
   }

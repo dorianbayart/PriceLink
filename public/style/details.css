@@ -4,6 +4,7 @@
 
 .translated {
   transform: translateX(-100vw);
+  display: none;
 }
 
 section#details {
