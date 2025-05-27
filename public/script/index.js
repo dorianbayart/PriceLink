@@ -523,8 +523,12 @@ const updatePrice = async (contract) => {
           if(!contractToUpdate.roundId || !latestRoundData.roundId || contractToUpdate.history.length === 0 || contractToUpdate.roundId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].roundId !== latestRoundData.roundId) {
             contractToUpdate.roundId = latestRoundData.roundId
 
-            if(Math.random() < 0.1) removeDuplicateHistoryPoints(contractToUpdate)
-            updateHistory(contractToUpdate)
+            if(Math.random() < 0.25) { // cleanup history
+              cleanHistoryPoints(contractToUpdate)
+              updateHistory(contractToUpdate, true)
+            } else {
+              updateHistory(contractToUpdate)
+            }
           }
 
           updateScreenerByContract(contractToUpdate)
@@ -821,13 +825,16 @@ const repairHistoryIfNeeded = (contract) => {
   return false
 }
 
-// Add this at the end of updateHistory to ensure no duplicates
-const removeDuplicateHistoryPoints = (contract) => {
-  if (!contract || !contract.history) return
+// Clean history - Remove duplicates and one random point - Monkey Test
+const cleanHistoryPoints = (contract) => {
+  if (!contract || !contract.history || contract.history.length < 5) return
   
   // Get unique roundIds
   const uniqueRoundIds = new Set()
   const uniqueHistory = []
+
+  const removalIndex = Math.floor(Math.random() * (contract.history.length - 2)) + 1
+  contract.history.splice(removalIndex, 1)
   
   for (const point of contract.history) {
     if (!uniqueRoundIds.has(point.roundId)) {
