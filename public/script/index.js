@@ -637,11 +637,6 @@ const updateHistory = async (contract, forceUpdate = false) => {
     // Sort by timestamp
     contract.history.sort((a, b) => Number(a.updatedAt) - Number(b.updatedAt))
 
-    // Keep full history
-    // if (!contract.fullHistory || forceUpdate) {
-    //   contract.fullHistory = [...contract.history]
-    // }
-
     const selectedTime = Date.now()/1000 - (DURATIONS[selectedDuration].milliseconds / 1000)
     const filteredHistory = contract.history.filter(p => Number(p.updatedAt) > selectedTime)
     if (filteredHistory.length > 0) {
@@ -655,18 +650,6 @@ const updateHistory = async (contract, forceUpdate = false) => {
         contract.percentChange24h = (Number(contract.price) - Number(filteredHistory[0].answer)) / Number(filteredHistory[0].answer) * 100
       }
     }
-    
-    // // Filter to keep only 24h data
-    // const oneDayAgo = Date.now()/1000 - 86400
-    // const index = contract.history.findIndex(p => Number(p.updatedAt) > oneDayAgo) - 1
-    // if (index > 0) {
-    //   contract.history = contract.history.slice(index)
-    // }
-    
-    // // Calculate 24h percentage change if we have enough data
-    // if (contract.history[0]?.answer) {
-    //   contract.percentChange24h = (Number(contract.price) - Number(contract.history[0].answer)) / Number(contract.history[0].answer) * 100
-    // }
     
   }
 
@@ -728,8 +711,6 @@ const fillHistoryGaps = async (contract, gaps) => {
       if (oldestPoint?.answer) {
         contract.percentChange24h = (Number(contract.price) - Number(oldestPoint.answer)) / Number(oldestPoint.answer) * 100
       }
-
-      
     }
 
     // Update UI immediately
