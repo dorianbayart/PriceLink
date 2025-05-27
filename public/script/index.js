@@ -28,6 +28,8 @@ let web3 = null
 const rpcIndexes = {}
 
 let searchInput = null, backFromDetails = null, detailsContract = null
+let updatePriceTimer = null
+let lastUpdateTime = Date.now()
 
 document.addEventListener('DOMContentLoaded', async () => {
   web3 = {}
@@ -83,7 +85,9 @@ const initialize = async () => {
   initializeScreener()
   updateMain()
 
-  setTimeout(updatePrice, 2000)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  updatePriceTimer = setTimeout(updatePrice, 2000)
 }
 
 const initializeDurationSelector = async () => {
@@ -146,6 +150,29 @@ const initializeScreener = async () => {
   } else {
     for(const item of SCREENER_INITIALIZER) {
       await addToScreener(item)
+    }
+  }
+}
+
+const handleVisibilityChange = () => {
+  if (!document.hidden) {
+    // App is coming back foreground
+    const timeSinceLastUpdate = Date.now() - lastUpdateTime
+    
+    // If more than 30s since last update
+    if (timeSinceLastUpdate > 30000) {
+      // Force update all contracts
+      screener.forEach(contract => {
+        if (contract) {
+          contract.updatedAt = 0 // Force update
+        }
+      })
+      
+      // Relaunch update cycle
+      if (updatePriceTimer) {
+        clearTimeout(updatePriceTimer)
+      }
+      updatePrice()
     }
   }
 }
@@ -517,7 +544,10 @@ const updatePrice = async (contract) => {
   }
   
 
-  if(!contract) setTimeout(updatePrice, delay)
+  if(!contract) {
+    if(!document.hidden) lastUpdateTime = Date.now()
+    updatePriceTimer = setTimeout(updatePrice, delay)
+  }
 }
 
 const updateHistory = async (contract, forceUpdate = false) => {
@@ -664,9 +694,6 @@ const fillHistoryGaps = async (contract, gaps) => {
 
   // Process gaps larger than minGapSize
   if(largestGap.timeDiff < minGapSize) return
-
-  if(contract.ens === 'link-usd')
-  console.log('updateHistory', contract, gaps, largestGap.timeDiff, largestGap.timeDiff/60)
   
   // Calculate the middle point's roundId
   const midRoundId = largestGap.startRoundId + ((largestGap.endRoundId - largestGap.startRoundId) / 2n)
