@@ -970,12 +970,12 @@ const fetchPages = async () => {
     if(!chainInfos) return
     
     const infos = CHAINS_TO_RPC.find(({ chainId }) => chainId === chainInfos?.chainId)
-    infos.rpc = infos?.rpc?.filter(rpc => rpc.startsWith('http') && !rpc.includes('API'))
+    if(infos) infos.rpc = infos?.rpc?.filter(rpc => rpc.startsWith('http') && !rpc.includes('API'))
 
     Object.assign(page, infos)
   })
 
-  pages = list
+  pages = list.sort((a, b) => a.chainId && b.chainId ? a.chainId - b.chainId : 0)
 
   console.log('Pages:', pages)
 
