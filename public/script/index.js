@@ -336,7 +336,7 @@ const updateScreener = async () => {
       divGraph.id = contract.networkId + '+' + contract.path + 'graph'
       if(contract.filteredHistory?.length > 1) {
         const plot = Plot.line(
-          contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
+          contract.filteredHistory.map(point => { return [new Date(Number(point.updatedAt+"000")), Number(point.answer)] }),
           { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
         divGraph.append(plot)
       }
@@ -384,7 +384,7 @@ const updateScreener = async () => {
       if(divGraph && contract.filteredHistory?.length > 1) {
         divGraph.innerHTML = null
         const plot = Plot.line(
-          contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
+          contract.filteredHistory.map(point => { return [new Date(Number(point.updatedAt+"000")), Number(point.answer)] }),
           { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
         divGraph.append(plot)
       }
@@ -490,7 +490,7 @@ const updateScreenerByContract = async (contract) => {
   if(divGraph && contract.filteredHistory?.length > 1) {
     divGraph.innerHTML = null
     const plot = Plot.line(
-      contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
+      contract.filteredHistory.map(point => { return [new Date(Number(point.updatedAt+"000")), Number(point.answer)] }),
       { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: 48, width: 48, axis: null });
     divGraph.append(plot)
   }
@@ -543,8 +543,15 @@ const updatePrice = async (contract) => {
   
   try {
     localStorage.setItem('screener', JSON.stringify(screener))
+    if(Math.random() > 0.8) console.info(`Data size to store: ${JSON.stringify(screener).length * 8 / 1000000} MB`)
   } catch(_) {
     console.error(`Error while storing data in cache: ${JSON.stringify(screener).length * 8 / 1000000} MB`)
+
+    let contract = { history: [] }
+    screener.forEach(c => c.history.length > contract.history.length ? contract = c : null )
+    cleanHistoryPoints(contract)
+
+    console.info(`New data size to store after cleaning up a bit: ${JSON.stringify(screener).length * 8 / 1000000} MB`)
   }
   
 
@@ -607,9 +614,9 @@ const updateHistory = async (contract, forceUpdate = false) => {
     const currentData = {
       roundId: contract.roundId,
       answer: contract.price,
-      startedAt: Math.floor(contract.timestamp / 1000).toString(),
+      // startedAt: Math.floor(contract.timestamp / 1000).toString(),
       updatedAt: Math.floor(contract.timestamp / 1000).toString(),
-      answeredInRound: contract.roundId
+      // answeredInRound: contract.roundId
     }
 
     const lastPoint = contract.history.length > 0 ? contract.history[contract.history.length - 1] : null
@@ -650,7 +657,6 @@ const updateHistory = async (contract, forceUpdate = false) => {
         contract.percentChange24h = (Number(contract.price) - Number(filteredHistory[0].answer)) / Number(filteredHistory[0].answer) * 100
       }
     }
-    
   }
 
   // Update UI with what we have so far
@@ -779,7 +785,11 @@ const fetchHistoryPoint = async (contract, roundId) => {
     }
 
     // console.log(`Successfully fetched history point for ${contract.assetName}: round=${roundId}, price=${roundData.answer}, time=${new Date(Number(roundData.updatedAt + '000')).toISOString()}`)
-    return roundData
+    return {
+      answer: roundData.answer,
+      updatedAt: roundData.updatedAt,
+      roundId: roundData.roundId,
+    }
   } catch (e) {
     console.log(`Error fetching history for ${contract.assetName} at round ${roundId}:`, e.message)
   }
@@ -888,7 +898,7 @@ const addToDetails = async (contract) => {
   if(divGraph && contract.filteredHistory.length > 1) {
     divGraph.innerHTML = null
     const plot = Plot.line(
-      contract.filteredHistory.map(point => { return [new Date(Number(point.startedAt+"000")), Number(point.answer)] }),
+      contract.filteredHistory.map(point => { return [new Date(Number(point.updatedAt+"000")), Number(point.answer)] }),
       { stroke: "ghostwhite", curve: "monotone-x" }).plot({ height: window.innerHeight - 80, width: window.innerWidth, axis: null });
     divGraph.append(plot)
   }
@@ -1044,7 +1054,7 @@ const roundPercentage = (percentage) => {
 }
 
 const definePrefix = (path) => {
-  const key = Object.keys(SYMBOLS).find(key => path.endsWith(key))
+  const key = Object.keys(SYMBOLS).find(key => path?.endsWith(key))
   if(key) return SYMBOLS[key]
   return
 }
