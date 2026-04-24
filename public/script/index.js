@@ -1025,6 +1025,17 @@ const fetchPages = async () => {
   await populateContracts()
 
   localStorage.setItem('pages', JSON.stringify(pages))
+
+  // web3 instances are now ready — trigger history rebuild for any screener contract
+  // whose history is stale or empty (avoids needing a manual duration-switch to kick it off)
+  const now = Date.now() / 1000
+  screener.forEach((contract, i) => {
+    if (!contract || !contract.rId) return
+    const hasRecentHistory = contract.history?.some(p => Number(p.uAt) > now - DURATIONS[selectedDuration].milliseconds / 1000)
+    if (!hasRecentHistory) {
+      setTimeout(() => updateHistory(contract, true), i * 200) // stagger to avoid RPC burst
+    }
+  })
 }
 
 const fetchContracts = async (url) => {
