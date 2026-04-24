@@ -523,12 +523,10 @@ const updatePrice = async (contract) => {
           if(!contractToUpdate.rId || !latestRoundData.roundId || contractToUpdate.history.length === 0 || contractToUpdate.rId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].rId !== latestRoundData.roundId) {
             contractToUpdate.rId = latestRoundData.roundId
 
-            if(Math.random() < 0.25) { // cleanup history
+            if(Math.random() < 0.25) { // cleanup history - remove a random point then let dichotomy fill the gap
               cleanHistoryPoints(contractToUpdate)
-              updateHistory(contractToUpdate, true)
-            } else {
-              updateHistory(contractToUpdate)
             }
+            updateHistory(contractToUpdate)
           }
 
           updateScreenerByContract(contractToUpdate)
@@ -574,30 +572,53 @@ const updateHistory = async (contract, forceUpdate = false) => {
   const phaseId = num >> 64n
   const aggregatorRoundId = num & num2
   const currentRound = (phaseId << 64n) | (aggregatorRoundId)
-  
+
+  // Detect stale history: has data but none within the selected duration window → force full rebuild
+  if (!forceUpdate && initialHistoryLength > 1 && contract.rId) {
+    const staleCheck = Date.now()/1000 - (DURATIONS[selectedDuration].milliseconds / 1000)
+    const hasRecentHistory = contract.history.some(p => Number(p.uAt) > staleCheck)
+    if (!hasRecentHistory) {
+      contract.history = []
+      forceUpdate = true
+    }
+  }
 
   // If we have no history, we need to get benchmark data to estimate rounds per day
   if (initialHistoryLength === 0 || forceUpdate) {
     contract.history = contract.history || []
     // console.log('No history, initializing with endpoints', contract.assetName?.length ? contract.assetName : contract.name)
     
-    // Get benchmark point to calculate time per round
-    const benchRoundData = await fetchHistoryPoint(contract, currentRound - 100n)
+    // Clamp round lookups to the start of the current phase to avoid crossing phase boundaries
+    // Chainlink round IDs: upper 16 bits = phaseId, lower 64 bits = aggregatorRound
+    const phaseStartRound = (phaseId << 64n) | 1n
+
+    // Get benchmark point to calculate time per round (clamped to current phase)
+    const benchOffset = 100n
+    const benchRound = currentRound - benchOffset < phaseStartRound ? phaseStartRound : currentRound - benchOffset
+    const actualBenchOffset = Number(currentRound - benchRound) || 1
+
+    if (benchRound === currentRound) {
+      console.log('Not enough rounds in current phase to estimate time per round, aborting', contract.assetName?.length ? contract.assetName : contract.name)
+      return
+    }
+
+    const benchRoundData = await fetchHistoryPoint(contract, benchRound)
     if (!benchRoundData || Number(benchRoundData.answer) <= 0) {
       console.log('Failed to get benchmark data, aborting', contract.assetName?.length ? contract.assetName : contract.name)
       return
     }
-    
+
     // Calculate approximate rounds per day
-    const timePerRound = (contract.timestamp - Number(benchRoundData.uAt + '000'))/100
+    const timePerRound = (contract.timestamp - Number(benchRoundData.uAt + '000')) / actualBenchOffset
     const roundsPerDay = Math.ceil(86400000 / timePerRound)
-    
-    // Target oldest round we need depending on selected duration
+
+    // Target oldest round we need depending on selected duration, clamped to current phase
     const oldestTargetRound = currentRound - BigInt(roundsPerDay * DURATIONS[selectedDuration].roundsMultiplier)
-    
-    // Fetch endpoints first: now and 24h ago
+    const safeOldestTargetRound = oldestTargetRound < phaseStartRound ? phaseStartRound : oldestTargetRound
+
+    // Fetch endpoints first: now and oldest available within selected duration
     const currentData = await fetchHistoryPoint(contract, currentRound)
-    const oldestData = await fetchHistoryPoint(contract, oldestTargetRound)
+    const oldestData = await fetchHistoryPoint(contract, safeOldestTargetRound)
     
     if (currentData) contract.history.push(currentData)
     if (oldestData) contract.history.push(oldestData)
