@@ -957,7 +957,10 @@ const searchContract = (id) => {
 const fetchPages = async () => {
   const list = await fetch(repoUrl + 'main/src/features/data/chains.ts')
   .then((resp) => resp.text())
-  .then((text) => text.split('CHAINS: Chain[] =').slice(-2)[0].split('// All')[0]) // keep useful data
+  .then((text) => {
+    const after = text.slice(text.indexOf('export const CHAINS: Chain[] = ') + 'export const CHAINS: Chain[] = '.length)
+    return after.slice(0, after.search(/^\]/m) + 1) // keep useful data - stop at top-level closing bracket
+  })
   .then((str) => {
     return ('{ data:' + str + '}')
     .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
