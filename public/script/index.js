@@ -1,6 +1,6 @@
 'use strict'
 
-import { ABI, NETWORK, SCREENER_INITIALIZER, SYMBOLS } from 'constant'
+import { ABI, SCREENER_INITIALIZER, SYMBOLS } from 'constant'
 import * as Plot from 'plot'
 
 let CHAINS_TO_ID = []
@@ -520,7 +520,7 @@ const updatePrice = async (contract) => {
           contractToUpdate.price = latestRoundData.answer
           contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
-          if(!contractToUpdate.rId || !latestRoundData.roundId || contractToUpdate.history.length === 0 || contractToUpdate.rId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].rId !== latestRoundData.roundId) {
+          if(!contractToUpdate.rId || !latestRoundData.roundId || !contractToUpdate.history || contractToUpdate.history.length === 0 || contractToUpdate.rId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].rId !== latestRoundData.roundId) {
             contractToUpdate.rId = latestRoundData.roundId
 
             if(Math.random() < 0.25) { // cleanup history - remove a random point then let dichotomy fill the gap
@@ -532,7 +532,7 @@ const updatePrice = async (contract) => {
           updateScreenerByContract(contractToUpdate)
 
         } catch(e) {
-          // console.error(e)
+          console.error(e)
         }
       }
     }
