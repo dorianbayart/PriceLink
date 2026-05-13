@@ -617,7 +617,9 @@ const updateHistory = async (contract, forceUpdate = false) => {
     const safeOldestTargetRound = oldestTargetRound < phaseStartRound ? phaseStartRound : oldestTargetRound
 
     // Fetch endpoints first: now and oldest available within selected duration
+    await new Promise(resolve => setTimeout(resolve, HISTORY_FETCH_DELAY_MS))
     const currentData = await fetchHistoryPoint(contract, currentRound)
+    await new Promise(resolve => setTimeout(resolve, HISTORY_FETCH_DELAY_MS))
     const oldestData = await fetchHistoryPoint(contract, safeOldestTargetRound)
     
     if (currentData) contract.history.push(currentData)
@@ -1098,60 +1100,61 @@ const getWeb3 = (network) => {
   return
 }
 
+const RPC_RETRY_DELAY_MS = 1000 // delay between retries to avoid spamming RPCs
+const HISTORY_FETCH_DELAY_MS = 400 // delay between sequential history RPC calls
+
 // Get latest price
 const getLatestRoundWeb3 = async (adress, network) => {
-  const maxAttempts = 3 // Try up to 3 different RPCs
+  const page = pages.find(p => p.networks.some(n => network === p.page + '.' + n.name.toLowerCase().replaceAll(' ', '-')))
+  const maxAttempts = (page?.rpc?.length || 1) * 3
   let attempts = 0
 
   while(attempts < maxAttempts) {
     const web3Instance = getWeb3(network)
     if(!web3Instance) return
-    
+
     try {
       let contract = new (web3Instance.eth).Contract(ABI, adress)
       const result = await contract.methods.latestRoundData().call()
       return result
     } catch(error) {
       attempts++
-      // console.warn(`RPC failed for ${network}, attempt ${attempts}/${maxAttempts}`, error)
-      
-      // If we haven't reached max attempts, try switching to the next RPC
       if(attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, RPC_RETRY_DELAY_MS))
         const switched = await switchToNextRPC(network)
-        if(!switched) break // No more RPCs to try
+        if(!switched) break
       }
     }
   }
-  
+
   console.error(`All RPCs failed for ${network} after ${attempts} attempts`)
   return null
 }
 
 // Get historical price
 const getRoundDataWeb3 = async (adress, roundId, network) => {
-  const maxAttempts = 3 // Try up to 3 different RPCs
+  const page = pages.find(p => p.networks.some(n => network === p.page + '.' + n.name.toLowerCase().replaceAll(' ', '-')))
+  const maxAttempts = (page?.rpc?.length || 1) * 3
   let attempts = 0
-  
+
   while(attempts < maxAttempts) {
     const web3Instance = getWeb3(network)
     if(!web3Instance) return
-    
+
     try {
       let contract = new (web3Instance.eth).Contract(ABI, adress)
       const result = await contract.methods.getRoundData(roundId).call()
       return result
     } catch(error) {
       attempts++
-      // console.warn(`RPC failed for ${network} with roundId ${roundId}, attempt ${attempts}/${maxAttempts}`, error)
-      
-      // If we haven't reached max attempts, try switching to the next RPC
       if(attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, RPC_RETRY_DELAY_MS))
         const switched = await switchToNextRPC(network)
-        if(!switched) break // No more RPCs to try
+        if(!switched) break
       }
     }
   }
-  
+
   console.error(`All RPCs failed for ${network} with roundId ${roundId} after ${attempts} attempts`)
   return null
 }
