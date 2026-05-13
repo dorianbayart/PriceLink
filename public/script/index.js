@@ -515,12 +515,17 @@ const updatePrice = async (contract) => {
         try {
           contractToUpdate.uAt = Date.now()
           const latestRoundData = await getLatestRoundWeb3(contractToUpdate.proxyAddress, contractToUpdate.networkId)
-          if(!latestRoundData) return
+          if(!latestRoundData) {
+            if(!contract) updatePriceTimer = setTimeout(updatePrice, delay)
+            return
+          }
 
           contractToUpdate.price = latestRoundData.answer
           contractToUpdate.timestamp = Number(latestRoundData.updatedAt + "000")
 
-          if(!contractToUpdate.rId || !latestRoundData.roundId || !contractToUpdate.history || contractToUpdate.history.length === 0 || contractToUpdate.rId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].rId !== latestRoundData.roundId) {
+          const windowStart = Date.now()/1000 - DURATIONS[selectedDuration].milliseconds/1000
+          const hasValidHistory = contractToUpdate.filteredHistory?.some(p => Number(p.uAt) > windowStart)
+          if(!contractToUpdate.rId || !latestRoundData.roundId || !contractToUpdate.history || contractToUpdate.history.length === 0 || !hasValidHistory || contractToUpdate.rId !== latestRoundData.roundId || contractToUpdate.history[contractToUpdate.history.length-1].rId !== latestRoundData.roundId) {
             contractToUpdate.rId = latestRoundData.roundId
 
             if(Math.random() < 0.25) { // cleanup history - remove a random point then let dichotomy fill the gap
