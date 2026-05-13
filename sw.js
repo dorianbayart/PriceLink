@@ -26,7 +26,7 @@ const urlsToCache = [
 
 const staleUrls = [
   'https://chainid.network/chains_mini.json',
-  'raw.githubusercontent.com/dorianbayart/documentation',
+  'raw.githubusercontent.com/smartcontractkit/documentation',
   'reference-data-directory.vercel.app',
   'web3.min.js',
   'fonts.googleapis.com',

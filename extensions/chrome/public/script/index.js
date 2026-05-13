@@ -5,7 +5,7 @@ const contracts = {};
 
 const screener = [];
 
-const repoUrl = 'https://raw.githubusercontent.com/dorianbayart/documentation/';
+const repoUrl = 'https://raw.githubusercontent.com/smartcontractkit/documentation/';
 const imgBaseUrl = repoUrl + 'main/public';
 
 let web3 = null;
